@@ -93,7 +93,8 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 60px;
+  height: calc(60px + env(safe-area-inset-bottom)); /* Altezza dinamica */
+  padding-bottom: env(safe-area-inset-bottom);       /* Spazio di sicurezza */
   background-color: #ffffff;
   border-top: 1px solid #ddd;
   display: flex;
@@ -102,6 +103,7 @@ body {
   z-index: 1000;
   box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
+
 
 .bar-item {
   flex: 1;
