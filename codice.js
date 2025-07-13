@@ -136,16 +136,33 @@ const addressEl = document.getElementById("address");
       }
     }
 
-    function reverseGeocode(lat, lon) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
-        .then(res => res.json())
-        .then(data => {
-          const via = data.address.road || data.display_name;
-          addressEl.textContent = via;
-          const info = getPuliziaInfo(via);
-          puliziaEl.innerHTML = info;
-        });
-    }
+function reverseGeocode(lat, lon) {
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+    .then(res => res.json())
+    .then(data => {
+      const address = data.address;
+      const via = address.road || data.display_name;
+
+      // Controllo città
+      const comune = address.city || address.town || address.village || "";
+      const comuneLower = comune.toLowerCase();
+
+      if (!comuneLower.includes("firenze")) {
+        document.getElementById("address").textContent = "L'app funziona solo a Firenze.";
+        document.getElementById("pulizia").innerHTML = "<strong>⚠️ Località non supportata</strong>";
+        return; // Interrompe la funzione qui
+      }
+
+      addressEl.textContent = via;
+      const info = getPuliziaInfo(via);
+      puliziaEl.innerHTML = info;
+    })
+    .catch(error => {
+      console.error("Errore nel reverse geocoding:", error);
+      document.getElementById("address").textContent = "Errore nel recupero dell'indirizzo.";
+      document.getElementById("pulizia").innerHTML = "Impossibile ottenere dati.";
+    });
+}
 
     let marker = null;
 
