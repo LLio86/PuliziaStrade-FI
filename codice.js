@@ -10,11 +10,17 @@ const addressEl = document.getElementById("address");
     let pulizieGeoJSON = null;
 
     fetch('pulizia_firenze.geojson')
-      .then(response => response.json())
-      .then(data => {
-        pulizieGeoJSON = data;
-        console.log("Dati pulizia caricati:", data);
-      });
+  .then(response => response.json())
+  .then(data => {
+    pulizieGeoJSON = data;
+    console.log("Dati pulizia caricati:", data);
+
+    // Aggiorna lista vie in pulizia oggi
+    const listaDiv = document.getElementById("lista-pulizie-oggi");
+    if (listaDiv) {
+      listaDiv.innerHTML = filtraPulizieOggi();
+    }
+  });
 
     function estraiValoreDescrizione(html, chiave) {
       const div = document.createElement("div");
@@ -227,3 +233,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
+
+
+
+function filtraPulizieOggi() {
+  if (!pulizieGeoJSON) return "Dati pulizia non disponibili.";
+
+  const oggi = new Date();
+  const giorniSettimanaIT = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  const giornoNome = giorniSettimanaIT[oggi.getDay()];
+
+  // Calcola la settimana corrente del mese
+  const settimanaCorrente = Math.floor((oggi.getDate() - 1) / 7) + 1;
+  const settimanaStr = settimanaCorrente + "ª";
+
+  const features = pulizieGeoJSON.features;
+
+  const pulizieOggi = features.filter(f => {
+    const desc = f.properties.description || "";
+
+    const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "";
+    const giorniMap = { LU: "Lunedì", MA: "Martedì", ME: "Mercoledì", GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica" };
+    const giornoPulizia = giorniMap[giornoCod.toUpperCase()] || "";
+
+    if (giornoPulizia !== giornoNome) return false;
+
+    // Controllo settimana
+    const settimane = [];
+    if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+    if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+    if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+    if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+    if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+    return settimane.includes(settimanaStr);
+  });
+
+  if (pulizieOggi.length === 0) {
+    return "<em>Nessuna pulizia programmata per oggi.</em>";
+  }
+
+  // Crea lista HTML
+  return pulizieOggi.map(f => {
+    const desc = f.properties.description || "";
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "Indirizzo non specificato";
+    const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "-";
+    const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
+    const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+    return `<div class="pulizia-oggi-entry">
+      <strong>${indirizzo}</strong> (${oraInizio} - ${oraFine})<br>
+      <em>${tratto}</em>
+    </div>`;
+  }).join("");
+}
