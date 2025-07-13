@@ -19,30 +19,54 @@
 <body>
   <script src="pulsante.js"></script>
   <button id="btnInstall" style="display:none;">📲 Installa come app</button>
-  <div class="header-bar"> Pulizia Strade - Firenze 🧹 </div>
-  <div id="map"></div>
-  <div class="info">
-    <p><strong>📍 Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
-    <p><strong>🧭 Coordinate GPS:</strong> <span id="coords">-</span></p>
-  </div>
-    <p><strong></strong> <span id="pulizia">Ricerca in corso...</span></p>
-  
 
+  <div class="header-bar">Pulizia Strade - Firenze 🧹</div>
+
+  <!-- 🔁 Contenitore sezioni -->
+  <div id="sezioni">
+
+    <!-- 📍 Sezione Posizione -->
+    <div class="sezione" id="sezione-posizione">
+      <div id="map"></div>
+      <div class="info">
+        <p><strong>📍Posizione attuale:</strong> <span id="address">Caricamento...</span></p>
+        <p><strong>🧭Coordinate GPS:</strong> <span id="coords">-</span></p>
+      </div>
+      <p><strong></strong> <span id="pulizia">Ricerca in corso...</span></p>
+    </div>
+
+    <!-- 🧹 Sezione Pulizia -->
+    <div class="sezione" id="sezione-pulizia" style="display:none;">
+      <h3>🧹 Informazioni sulla Pulizia Strade</h3>
+      <p>Qui puoi visualizzare le date e le zone soggette a pulizia programmata.</p>
+      <!-- Puoi aggiungere qui altri contenuti dinamici o statici -->
+    </div>
+
+    <!-- ⚙️ Sezione Impostazioni -->
+    <div class="sezione" id="sezione-impostazioni" style="display:none;">
+      <h3>⚙️ Impostazioni</h3>
+      <p>Personalizza notifiche, lingua o altre preferenze.</p>
+      <!-- In futuro: toggle notifiche, lingua, dark mode, ecc. -->
+    </div>
+
+  </div>
+
+  <!-- 🌍 Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="codice.js"></script>
 
-<div class="bottom-bar">
-  <div class="bar-item active">
-    <span>📍</span><br>Posizione
+  <!-- 🔘 Bottom Bar -->
+  <div class="bottom-bar">
+    <div class="bar-item active" data-sezione="posizione">
+      <span>📍</span><br>Posizione
+    </div>
+    <div class="bar-item" data-sezione="pulizia">
+      <span>🧹</span><br>Pulizia
+    </div>
+    <div class="bar-item" data-sezione="impostazioni">
+      <span>⚙️</span><br>Impostazioni
+    </div>
   </div>
-  <div class="bar-item">
-    <span>🧹</span><br>Pulizia
-  </div>
-  <div class="bar-item">
-    <span>⚙️</span><br>Impostazioni
-  </div>
-</div>
-
 
 
   
