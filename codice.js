@@ -193,3 +193,20 @@ const addressEl = document.getElementById("address");
       alert("Geolocalizzazione non supportata dal browser.");
     }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.bar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.sezione;
+      document.querySelectorAll('.sezione').forEach(sec => {
+        sec.style.display = 'none';
+      });
+      document.getElementById('sezione-' + target).style.display = 'block';
+
+      document.querySelectorAll('.bar-item').forEach(el => {
+        el.classList.remove('active');
+      });
+      item.classList.add('active');
+    });
+  });
+});
