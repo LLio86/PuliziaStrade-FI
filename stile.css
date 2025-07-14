@@ -1,3 +1,60 @@
+/* 🎨 Variabili base tema chiaro (default) */
+:root {
+  --colore-sfondo: #e8ebf1;
+  --colore-testo: #333;
+  --colore-header-bg: #5a328c;
+  --colore-header-bordo: #472776;
+  --colore-box-bg: #ffffff;
+  --colore-box-bordo: #5a328c;
+  --colore-box-testo: #333;
+  --colore-box-accento: #5a328c;
+  --colore-bottom-bar: #ffffff;
+  --colore-bottom-bar-bordo: #ddd;
+  --colore-bar-item: #5a328c;
+  --colore-bar-item-attivo: #3a1e6c;
+  --colore-evidenza-bg: #ffeeba;
+  --colore-evidenza-testo: #856404;
+  --colore-corsivo: #666;
+}
+
+/* 🎨 Tema scuro */
+body.tema-scuro {
+  --colore-sfondo: #1d1d1d;
+  --colore-testo: #f0f0f0;
+  --colore-header-bg: #2e1253;
+  --colore-header-bordo: #1a0933;
+  --colore-box-bg: #2c2c2c;
+  --colore-box-bordo: #a77eff;
+  --colore-box-testo: #e0e0e0;
+  --colore-box-accento: #c397ff;
+  --colore-bottom-bar: #2c2c2c;
+  --colore-bottom-bar-bordo: #444;
+  --colore-bar-item: #c397ff;
+  --colore-bar-item-attivo: #e0d0ff;
+  --colore-evidenza-bg: #4c4c00;
+  --colore-evidenza-testo: #ffff99;
+  --colore-corsivo: #aaa;
+}
+
+/* 🎨 Tema alto contrasto */
+body.tema-alto-contrasto {
+  --colore-sfondo: #000000;
+  --colore-testo: #ffffff;
+  --colore-header-bg: #000000;
+  --colore-header-bordo: #ffffff;
+  --colore-box-bg: #000000;
+  --colore-box-bordo: #ffff00;
+  --colore-box-testo: #ffffff;
+  --colore-box-accento: #ffff00;
+  --colore-bottom-bar: #000000;
+  --colore-bottom-bar-bordo: #ffff00;
+  --colore-bar-item: #ffff00;
+  --colore-bar-item-attivo: #ffffff;
+  --colore-evidenza-bg: #ffff00;
+  --colore-evidenza-testo: #000000;
+  --colore-corsivo: #ffffff;
+}
+
 /* Reset base */
 * {
   box-sizing: border-box;
@@ -8,8 +65,8 @@
 /* Corpo */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #e8ebf1;
-  color: #333;
+  background-color: var(--colore-sfondo);
+  color: var(--colore-testo);
   line-height: 1.5;
   padding: 0;
   padding-bottom: 70px;
@@ -17,14 +74,14 @@ body {
 
 /* Barra superiore */
 .header-bar {
-  background-color: #5a328c;
-  color: white;
+  background-color: var(--colore-header-bg);
+  color: var(--colore-testo);
   padding: 1em 1.5em;
   text-align: center;
   font-size: 1.5em;
   font-weight: bold;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-bottom: 3px solid #472776;
+  border-bottom: 3px solid var(--colore-header-bordo);
 }
 
 /* Mappa */
@@ -38,11 +95,11 @@ body {
 
 /* Contenitori info */
 .info, .pulizia-entry {
-  background-color: #ffffff;
+  background-color: var(--colore-box-bg);
   margin: 1em 1.5em;
   padding: 1em 1.2em;
   border-radius: 10px;
-  border-left: 5px solid #5a328c;
+  border-left: 5px solid var(--colore-box-bordo);
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   transition: box-shadow 0.2s ease;
 }
@@ -54,26 +111,26 @@ body {
 /* Titoli e dettagli */
 .info p, .pulizia-entry p, .pulizia-entry strong {
   margin-bottom: 0.4em;
-  color: #333;
+  color: var(--colore-box-testo);
 }
 
 .pulizia-entry strong {
-  color: #5a328c;
+  color: var(--colore-box-accento);
 }
 
 /* Evidenzia prossima data */
 .highlight-date {
-  background-color: #ffeeba;
+  background-color: var(--colore-evidenza-bg);
   padding: 0.2em 0.5em;
   border-radius: 5px;
   font-weight: bold;
-  color: #856404;
+  color: var(--colore-evidenza-testo);
 }
 
 /* Tratto in corsivo */
 .pulizia-entry em {
   font-style: italic;
-  color: #666;
+  color: var(--colore-corsivo);
 }
 
 /* Responsive */
@@ -88,15 +145,16 @@ body {
   }
 }
 
+/* Barra inferiore */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: calc(60px + env(safe-area-inset-bottom)); /* Altezza dinamica */
-  padding-bottom: env(safe-area-inset-bottom);       /* Spazio di sicurezza */
-  background-color: #ffffff;
-  border-top: 1px solid #ddd;
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: var(--colore-bottom-bar);
+  border-top: 1px solid var(--colore-bottom-bar-bordo);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -104,14 +162,14 @@ body {
   box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 
-
+/* Elementi barra */
 .bar-item {
   flex: 1;
   text-align: center;
   font-size: 0.85rem;
-  color: #5a328c;
+  color: var(--colore-bar-item);
   cursor: pointer;
-  padding:0.5em 0;
+  padding: 0.5em 0;
 }
 
 .bar-item span {
@@ -120,6 +178,5 @@ body {
 
 .bar-item.active {
   font-weight: bold;
-  color: #3a1e6c;
+  color: var(--colore-bar-item-attivo);
 }
-
