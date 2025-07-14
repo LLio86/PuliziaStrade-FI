@@ -10,7 +10,8 @@ const filesToCache = [
   '/icona.png',
   '/pulsante.js',
   '/stile.css',
-  '/codice.js'
+  '/codice.js',
+  '/tema.js'
   
 ];
 
