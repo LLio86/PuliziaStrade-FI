@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Mappa Pulizia Firenze</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+    .leaflet-control-custom {
+      background-color: white;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
+      background-size: 20px 20px;
+      background-repeat: no-repeat;
+      background-position: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.4);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="address"></div>
+  <div id="coords"></div>
+  <div id="pulizia"></div>
+  <div id="lista-pulizie-oggi"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const addressEl = document.getElementById("address");
+    const coordsEl = document.getElementById("coords");
+    const puliziaEl = document.getElementById("pulizia");
+
+    const map = L.map('map').setView([43.7696, 11.2558], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // CONTROLLO MAPPA: Pulsante "posizione corrente"
+    const LocateControl = L.Control.extend({
+      onAdd: function (map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        container.title = 'Vai alla mia posizione';
+        container.onclick = function () {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                aggiornaPosizione(lat, lon);
+              },
+              onLocationError,
+              { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+            );
+          } else {
+            alert("Geolocalizzazione non supportata dal browser.");
+          }
+        };
+        return container;
+      }
+    });
+
+    map.addControl(new LocateControl({ position: 'topleft' }));
+
+    let pulizieGeoJSON = null;
+
+    fetch('pulizia_firenze.geojson')
+      .then(response => response.json())
+      .then(data => {
+        pulizieGeoJSON = data;
+        const listaDiv = document.getElementById("lista-pulizie-oggi");
+        if (listaDiv) {
+          listaDiv.innerHTML = filtraPulizieOggi();
+        }
+      });
+
+    function estraiValoreDescrizione(html, chiave) {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      const items = div.querySelectorAll("li");
+      for (const li of items) {
+        const nome = li.querySelector(".atr-name")?.textContent?.trim().toLowerCase();
+        const valore = li.querySelector(".atr-value")?.textContent?.trim();
+        if (nome === chiave.toLowerCase()) return valore;
+      }
+      return null;
+    }
+
+    function calcolaProssimaDataPulizia(giornoSettimana, settimaneValide) {
+      const giorniSettimana = {
+        'Lunedì': 1, 'Martedì': 2, 'Mercoledì': 3,
+        'Giovedì': 4, 'Venerdì': 5, 'Sabato': 6, 'Domenica': 0
+      };
+      const oggi = new Date();
+      const meseCorrente = oggi.getMonth();
+      const annoCorrente = oggi.getFullYear();
+
+      function trovaDateNelMese(mese, anno) {
+        const date = [];
+        let settimana = 1;
+        for (let giorno = 1; giorno <= 31; giorno++) {
+          const data = new Date(anno, mese, giorno);
+          if (data.getMonth() !== mese) break;
+          if (data.getDay() === giorniSettimana[giornoSettimana]) {
+            date.push({ data, settimana });
+            settimana++;
+          }
+        }
+        return date;
+      }
+
+      function trovaProssima(dataList) {
+        return dataList.find(({ data, settimana }) =>
+          settimaneValide.includes(`${settimana}ª`) && data >= oggi
+        );
+      }
+
+      const matchCorrente = trovaProssima(trovaDateNelMese(meseCorrente, annoCorrente));
+      if (matchCorrente) return matchCorrente.data;
+
+      const meseSuccessivo = (meseCorrente + 1) % 12;
+      const annoSuccessivo = meseCorrente === 11 ? annoCorrente + 1 : annoCorrente;
+      return trovaProssima(trovaDateNelMese(meseSuccessivo, annoSuccessivo))?.data || null;
+    }
+
+    function getPuliziaInfo(via) {
+      if (!pulizieGeoJSON) return "Dati non disponibili";
+
+      const features = pulizieGeoJSON.features;
+      const matches = features.filter(f => {
+        const desc = f.properties.description || "";
+        const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+        return indirizzo && via.toLowerCase().includes(indirizzo);
+      });
+
+      if (matches.length > 0) {
+        return matches.map(f => {
+          const desc = f.properties.description || "";
+          const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
+          const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
+          const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "ND";
+          const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "ND";
+          const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+          const settimane = [];
+          if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+          if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+          if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+          if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+          if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+          const giorni = {
+            LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+            GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+          };
+          const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
+          const prossimaData = calcolaProssimaDataPulizia(giornoNome, settimane);
+
+          let prossimaDataStr;
+          if (prossimaData) {
+            const oggi = new Date();
+            const diff = (prossimaData.setHours(0, 0, 0, 0) - oggi.setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24);
+            let extra = diff === 0 ? "(oggi)" : diff === 1 ? "(domani)" : `(tra ${diff} giorni)`;
+            prossimaDataStr = `${prossimaData.toLocaleDateString("it-IT", {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            })} <span class="extra-info">${extra}</span>`;
+          } else {
+            prossimaDataStr = "Data non trovata";
+          }
+
+          return `
+            <div class="pulizia-entry">
+              <strong>${indirizzo}</strong><br>
+              Giorno: <strong>${giornoNome}</strong><br>
+              Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
+              Settimane: <strong>${settimane.join(", ") || "non specificate"}</strong><br>
+              Prossima data: <span class="highlight-date">${prossimaDataStr}</span><br>
+              ${tratto ? `Tratto: <em>${tratto}</em>` : ""}
+            </div>
+          `;
+        }).join("");
+      } else {
+        return "Nessuna pulizia programmata per questa via.";
+      }
+    }
+
+    function reverseGeocode(lat, lon) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+        .then(res => res.json())
+        .then(data => {
+          const address = data.address;
+          const via = address.road || data.display_name;
+          const comune = (address.city || address.town || address.village || "").toLowerCase();
+
+          if (!comune.includes("firenze")) {
+            addressEl.textContent = "L'app funziona solo a Firenze.";
+            puliziaEl.innerHTML = "<strong>⚠️ Località non supportata</strong>";
+            return;
+          }
+
+          addressEl.textContent = via;
+          puliziaEl.innerHTML = getPuliziaInfo(via);
+        })
+        .catch(error => {
+          addressEl.textContent = "Errore nel recupero dell'indirizzo.";
+          puliziaEl.innerHTML = "Impossibile ottenere dati.";
+        });
+    }
+
+    let marker = null;
+
+    const autoIcon = L.icon({
+      iconUrl: 'sedan.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40]
+    });
+
+    function aggiornaPosizione(lat, lon) {
+      coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️").openPopup();
+      }
+      map.setView([lat, lon], 17);
+      reverseGeocode(lat, lon);
+    }
+
+    function onLocationError(e) {
+      alert("Errore nel trovare la posizione: " + e.message);
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+        },
+        onLocationError,
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+    } else {
+      alert("Geolocalizzazione non supportata dal browser.");
+    }
+
+    function filtraPulizieOggi() {
+      if (!pulizieGeoJSON) return "Dati pulizia non disponibili.";
+      const oggi = new Date();
+      const giornoNome = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'][oggi.getDay()];
+      const settimanaCorrente = Math.floor((oggi.getDate() - 1) / 7) + 1;
+      const settimanaStr = settimanaCorrente + "ª";
+
+      return pulizieGeoJSON.features.filter(f => {
+        const desc = f.properties.description || "";
+        const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "";
+        const giorniMap = { LU: "Lunedì", MA: "Martedì", ME: "Mercoledì", GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica" };
+        const giornoPulizia = giorniMap[giornoCod.toUpperCase()] || "";
+        if (giornoPulizia !== giornoNome) return false;
+
+        const settimane = [];
+        if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+        if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+        if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+        if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+        if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+        return settimane.includes(settimanaStr);
+      }).map(f => {
+        const desc = f.properties.description || "";
+        const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "Indirizzo non specificato";
+        const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "-";
+        const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
+        const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+        return `<div class="pulizia-oggi-entry">
+          <strong>${indirizzo}</strong> (${oraInizio} - ${oraFine})<br>
+          <em>${tratto}</em>
+        </div>`;
+      }).join("") || "<em>Nessuna pulizia programmata per oggi.</em>";
+    }
+  </script>
+</body>
+</html>
