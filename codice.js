@@ -207,20 +207,28 @@ function reverseGeocode(lat, lon) {
       popupAnchor:  [0, -40]  // punto da cui esce il popup
 });
 
-    function aggiornaPosizione(lat, lon) {
-      coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    let autoCenter = true;
 
-      if (marker) {
-        marker.setLatLng([lat, lon]);
-      } else {
-        //marker = L.marker([lat, lon]).addTo(map).bindPopup("Sei qui").openPopup();
-        marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️").openPopup();
+map.on('movestart', () => {
+  autoCenter = false; // L’utente ha spostato la mappa manualmente
+});
 
-      }
+function aggiornaPosizione(lat, lon) {
+  coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
 
-      map.setView([lat, lon], 17);
-      reverseGeocode(lat, lon);
-    }
+  if (marker) {
+    marker.setLatLng([lat, lon]);
+  } else {
+    marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️").openPopup();
+  }
+
+  if (autoCenter) {
+    map.setView([lat, lon], 17);
+  }
+
+  reverseGeocode(lat, lon);
+}
+
 
     function onLocationError(e) {
       alert("Errore nel trovare la posizione: " + e.message);
