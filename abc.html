@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet con pulsante posizione</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; }
+    .leaflet-control-locate {
+      background-color: white;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
+      background-size: 20px 20px;
+      background-repeat: no-repeat;
+      background-position: center;
+      border-radius: 4px;
+      width: 34px;
+      height: 34px;
+      box-shadow: 0 0 3px rgba(0,0,0,0.4);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([45.4642, 9.19], 13); // Milano
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let userMarker;
+
+    // Custom Leaflet control (button on the map)
+    const LocateControl = L.Control.extend({
+      onAdd: function(map) {
+        const btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-locate');
+        L.DomEvent.on(btn, 'click', function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          locateUser(); // call function when clicked
+        });
+        return btn;
+      },
+      onRemove: function(map) {}
+    });
+
+    // Add control to map
+    map.addControl(new LocateControl({ position: 'topleft' }));
+
+    function locateUser() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            if (userMarker) {
+              userMarker.setLatLng([lat, lon]);
+            } else {
+              userMarker = L.marker([lat, lon]).addTo(map)
+                .bindPopup("Sei qui").openPopup();
+            }
+
+            map.setView([lat, lon], 16);
+          },
+          error => {
+            alert("Errore nel rilevare la posizione: " + error.message);
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert("Geolocalizzazione non supportata dal browser.");
+      }
+    }
+  </script>
+</body>
+</html>
