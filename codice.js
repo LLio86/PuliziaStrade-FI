@@ -122,9 +122,37 @@ const addressEl = document.getElementById("address");
           const giornoNome = giorni[giornoCod.toUpperCase()] || giornoCod;
 
           const prossimaData = calcolaProssimaDataPulizia(giornoNome, settimane);
-          const prossimaDataStr = prossimaData
-            ? prossimaData.toLocaleDateString("it-IT", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-            : "Data non trovata";
+
+
+            let prossimaDataStr;
+if (prossimaData) {
+  const oggi = new Date();
+  const diffTime = prossimaData.setHours(0, 0, 0, 0) - oggi.setHours(0, 0, 0, 0);
+  const diffGiorni = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  let extraInfo = "";
+  if (diffGiorni === 1) {
+    extraInfo = "(domani)";
+  } else if (diffGiorni === 0) {
+    extraInfo = "(oggi)";
+  } else if (diffGiorni > 1) {
+    extraInfo = `(tra ${diffGiorni} giorni)`;
+  }
+
+  prossimaDataStr = `${prossimaData.toLocaleDateString("it-IT", {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })} <span class="extra-info">${extraInfo}</span>`;
+} else {
+  prossimaDataStr = "Data non trovata";
+}
+
+
+
+
+            
 
           return `
             <div class="pulizia-entry">
