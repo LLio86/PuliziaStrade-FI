@@ -210,6 +210,7 @@ function reverseGeocode(lat, lon) {
 }
 
 let marker = null;
+let tracking = true;
 
 const autoIcon = L.icon({
     iconUrl: 'sedan.png', // esempio auto
@@ -222,46 +223,57 @@ let autoCenter = true;
 
 map.on('movestart', () => {
     autoCenter = false; // L’utente ha spostato la mappa manualmente
+    tracking = false;
 });
 
 function aggiornaPosizione(lat, lon) {
-    coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  if (!marker) {
+    marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️");
+  } else {
+    marker.setLatLng([lat, lon]);
+  }
 
-    if (marker) {
-        marker.setLatLng([lat, lon]);
-    } else {
-        marker = L.marker([lat, lon], {
-            icon: autoIcon
-        }).addTo(map).bindPopup("🅿️").openPopup();
-    }
+  if (tracking) {
+    map.setView([lat, lon]); // Segui solo se tracking attivo
+  }
 
-    if (autoCenter) {
-        map.setView([lat, lon], 17);
-    }
-
-    reverseGeocode(lat, lon);
+  reverseGeocode(lat, lon);
 }
+
+// Pulsante "centra e segui"
+const LocateControl = L.Control.extend({
+  onAdd: function (map) {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+    container.title = 'Centra e segui la mia posizione';
+    container.onclick = function () {
+      tracking = true;
+      if (marker) {
+        map.setView(marker.getLatLng(), map.getZoom());
+      }
+    };
+    return container;
+  }
+});
+map.addControl(new LocateControl({ position: 'topleft' }));
+
 
 
 function onLocationError(e) {
     alert("Errore nel trovare la posizione: " + e.message);
 }
 
+// Watch continuo: aggiorna ogni movimento
 if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(
-        (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            aggiornaPosizione(lat, lon);
-        },
-        onLocationError, {
-            enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 5000
-        }
-    );
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+    },
+    onLocationError,
+    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+  );
 } else {
-    alert("Geolocalizzazione non supportata dal browser.");
+  alert("Geolocalizzazione non supportata dal browser.");
 }
 
 
