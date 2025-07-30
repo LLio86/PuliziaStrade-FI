@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Scansione Navigatore</title>
+</head>
+<body>
+  <h1>Connetti al navigatore</h1>
+
+  <button onclick="scanAndConnect()">🔍 Connetti via Bluetooth</button>
+  <pre id="output">Stato: in attesa...</pre>
+
+  <script>
+    async function scanAndConnect() {
+      const log = (msg) => {
+        document.getElementById('output').textContent += '\n' + msg;
+        console.log(msg);
+      };
+
+      try {
+        log('🟡 Richiesta connessione a un dispositivo BLE...');
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [] // Vuoto = prova a scoprire tutto
+        });
+
+        log(`✅ Dispositivo selezionato: ${device.name || 'Sconosciuto'} (${device.id})`);
+
+        const server = await device.gatt.connect();
+        log('🔗 Connessione GATT stabilita.');
+
+        const services = await server.getPrimaryServices();
+        log(`📦 Servizi trovati: ${services.length}`);
+
+        for (const service of services) {
+          log(` - ${service.uuid}`);
+        }
+
+        log('✅ Scansione completata.');
+      } catch (error) {
+        log('❌ Errore: ' + error.message);
+      }
+    }
+  </script>
+</body>
+</html>
