@@ -77,6 +77,10 @@ body {
 
 /* Barra superiore */
 .header-bar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
   background-color: var(--colore-header-bg);
   color: var(--colore-header-testo);
   padding: 1em 1.5em;
@@ -199,5 +203,6 @@ body {
 }
 
 .sezione {
+  padding-top: 60px;
   padding-bottom: calc(60px + env(safe-area-inset-bottom));
 }
