@@ -105,8 +105,8 @@ body {
   z-index: 5;
 }
 
-#sezioni {
-  margin-top: calc(30vh + 64px);
+#sezione-posizione {
+  margin-top: calc(30vh + 64px); /* Solo questa sezione va spinta sotto la mappa */
 }
 
 #sezione-posizione .info {
