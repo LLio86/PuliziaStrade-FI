@@ -110,7 +110,11 @@ body {
 }
 
 #sezione-posizione .info {
-  margin-top: 0.2em; /* o anche 0, se vuoi zero spazio */
+  margin-top: 0.2em !important;
+}
+
+#sezione-posizione {
+  padding-top: 0.5em; /* oppure 0, se vuoi totale aderenza sotto la mappa */
 }
 
 /* Contenitori info */
