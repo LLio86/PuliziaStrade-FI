@@ -197,3 +197,7 @@ body {
   background-position: center;
   box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 }
+
+.sezione {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
