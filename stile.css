@@ -80,7 +80,7 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 1200;
+  z-index: 10;
   background-color: var(--colore-header-bg);
   color: var(--colore-header-testo);
   padding: 1em 1.5em;
@@ -94,7 +94,7 @@ body {
 /* Mappa */
 #map {
   position: fixed;
-  top: 0;
+  top: 3.5em;  /* lascia spazio sotto la header */
   left: 0;
   height: 30vh;
   width: 100%;
@@ -105,7 +105,7 @@ body {
 }
 
 #sezioni {
-  margin-top: 30vh;
+  margin-top: calc(30vh + 3.5em);
 }
 
 /* Contenitori info */
