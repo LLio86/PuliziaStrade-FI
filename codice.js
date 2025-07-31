@@ -246,7 +246,7 @@ const LocateControl = L.Control.extend({
   onAdd: function (map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
     container.title = 'Centra e segui la mia posizione';
-    container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
+    //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
 
     container.onclick = function () {
       tracking = true;
