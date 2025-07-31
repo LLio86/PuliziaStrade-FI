@@ -79,6 +79,7 @@ body {
 .header-bar {
   position: fixed;
   top: 0;
+  height: 64px; /* Altezza fissa */
   width: 100%;
   z-index: 10;
   background-color: var(--colore-header-bg);
@@ -94,7 +95,7 @@ body {
 /* Mappa */
 #map {
   position: fixed;
-  top: 3.5em;  /* lascia spazio sotto la header */
+  top: 64px; /* stessa altezza della header */
   left: 0;
   height: 30vh;
   width: 100%;
@@ -105,7 +106,7 @@ body {
 }
 
 #sezioni {
-  margin-top: calc(30vh + 3.5em);
+  margin-top: calc(30vh + 64px);
 }
 
 /* Contenitori info */
