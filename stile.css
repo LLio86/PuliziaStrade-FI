@@ -227,3 +227,15 @@ body {
   padding-top: 60px;
   padding-bottom: calc(60px + env(safe-area-inset-bottom));
 }
+
+#risultati-ricerca .risultato {
+    padding: 5px;
+    cursor: pointer;
+    background-color: #eee;
+    margin-top: 4px;
+    border-radius: 5px;
+}
+
+#risultati-ricerca .risultato:hover {
+    background-color: #ddd;
+}
