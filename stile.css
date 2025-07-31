@@ -199,5 +199,5 @@ body {
 }
 
 .sezione {
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
 }
