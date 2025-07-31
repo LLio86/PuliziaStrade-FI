@@ -246,16 +246,24 @@ const LocateControl = L.Control.extend({
   onAdd: function (map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
     container.title = 'Centra e segui la mia posizione';
+    container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
+
     container.onclick = function () {
       tracking = true;
+      autoCenter = true;
       if (marker) {
         map.setView(marker.getLatLng(), map.getZoom());
       }
     };
+
+    L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
+
     return container;
   }
 });
+
 map.addControl(new LocateControl({ position: 'topleft' }));
+
 
 
 
