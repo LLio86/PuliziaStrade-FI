@@ -93,11 +93,19 @@ body {
 
 /* Mappa */
 #map {
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 30vh;
   width: 100%;
-  border-radius: 12px;
-  margin: 1em auto;
+  border-radius: 12px 12px 0 0; /* arrotonda solo gli angoli superiori */
+  margin: 0; /* rimuovi il margin per non spostare la mappa */
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  z-index: 5;
+}
+
+#sezioni {
+  margin-top: 30vh;
 }
 
 /* Contenitori info */
