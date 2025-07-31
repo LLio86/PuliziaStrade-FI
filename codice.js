@@ -1,7 +1,7 @@
 const addressEl = document.getElementById("address");
 const coordsEl = document.getElementById("coords");
 const puliziaEl = document.getElementById("pulizia");
-const map = L.map('map').setView([43.7696, 11.2558], 19);
+const map = L.map('map').setView([43.7696, 11.2558], 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19
