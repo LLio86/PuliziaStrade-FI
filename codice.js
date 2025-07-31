@@ -235,7 +235,7 @@ function aggiornaPosizione(lat, lon) {
   }
 
   if (tracking) {
-    map.setView([lat, lon]); // Segui solo se tracking attivo
+    map.setView([lat, lon],19); // Segui solo se tracking attivo
   }
 
   reverseGeocode(lat, lon);
