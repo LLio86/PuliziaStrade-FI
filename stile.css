@@ -4,6 +4,7 @@
   --colore-testo: #333;
   --colore-header-bg: #5a328c;
   --colore-header-bordo: #472776;
+  --colore-header-testo: #ffffff;
   --colore-box-bg: #ffffff;
   --colore-box-bordo: #5a328c;
   --colore-box-testo: #333;
@@ -23,6 +24,7 @@ body.tema-scuro {
   --colore-testo: #f0f0f0;
   --colore-header-bg: #2e1253;
   --colore-header-bordo: #1a0933;
+  --colore-header-testo: #ffffff;
   --colore-box-bg: #2c2c2c;
   --colore-box-bordo: #a77eff;
   --colore-box-testo: #e0e0e0;
@@ -42,6 +44,7 @@ body.tema-alto-contrasto {
   --colore-testo: #ffffff;
   --colore-header-bg: #000000;
   --colore-header-bordo: #ffffff;
+  --colore-header-testo: #ffffff;
   --colore-box-bg: #000000;
   --colore-box-bordo: #ffff00;
   --colore-box-testo: #ffffff;
@@ -75,7 +78,7 @@ body {
 /* Barra superiore */
 .header-bar {
   background-color: var(--colore-header-bg);
-  color: var(--colore-testo);
+  color: var(--colore-header-testo);
   padding: 1em 1.5em;
   text-align: center;
   font-size: 1.5em;
