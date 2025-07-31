@@ -109,6 +109,10 @@ body {
   margin-top: calc(30vh + 64px);
 }
 
+#sezione-posizione .info {
+  margin-top: 0.2em; /* o anche 0, se vuoi zero spazio */
+}
+
 /* Contenitori info */
 .info, .pulizia-entry {
   background-color: var(--colore-box-bg);
