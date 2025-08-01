@@ -1,34 +1,51 @@
-let vieDisponibili = [];  // Popolato dal GeoJSON
+let vieDisponibili = [];  // Sarà popolato dal GeoJSON
 let preferite = [];
 
-// Carica e legge il GeoJSON (es. 'strade.geojson')
+const inputRicerca = document.getElementById('ricerca-via');
+const contenitoreRisultati = document.getElementById('risultati-ricerca');
+const listaPreferiti = document.getElementById('lista-preferiti');
+
+// Disattiva input fino a quando i dati sono pronti
+inputRicerca.disabled = true;
+
+// Carica e prepara i dati dal file GeoJSON
 fetch('pulizia_firenze.geojson')
     .then(response => response.json())
     .then(data => {
-        vieDisponibili = data.features.map(f => f.properties.nome_via); // Assumi campo "nome_via"
+        vieDisponibili = [...new Set(
+            data.features
+                .map(f => f.properties.nome_via)
+                .filter(nome => typeof nome === 'string' && nome.trim() !== '')
+        )];
+        inputRicerca.disabled = false;
+    })
+    .catch(err => {
+        console.error('Errore nel caricamento del GeoJSON:', err);
+        inputRicerca.placeholder = 'Errore nel caricamento dei dati';
     });
 
-// Cerca tra le vie quando l'utente digita
-document.getElementById('ricerca-via').addEventListener('input', function () {
+// Ricerca le vie mentre l'utente digita
+inputRicerca.addEventListener('input', function () {
     const query = this.value.toLowerCase();
-    const risultati = vieDisponibili.filter(via => via.toLowerCase().includes(query));
+    const risultati = vieDisponibili.filter(via =>
+        typeof via === 'string' && via.toLowerCase().includes(query)
+    );
     mostraRisultati(risultati);
 });
 
 // Mostra i risultati come elenco cliccabile
 function mostraRisultati(risultati) {
-    const contenitore = document.getElementById('risultati-ricerca');
-    contenitore.innerHTML = '';
+    contenitoreRisultati.innerHTML = '';
     risultati.slice(0, 10).forEach(via => {
         const div = document.createElement('div');
         div.textContent = via;
         div.className = 'risultato';
         div.addEventListener('click', () => aggiungiPreferita(via));
-        contenitore.appendChild(div);
+        contenitoreRisultati.appendChild(div);
     });
 }
 
-// Aggiungi una via ai preferiti e aggiorna la lista
+// Aggiunge una via ai preferiti se non già presente
 function aggiungiPreferita(via) {
     if (!preferite.includes(via)) {
         preferite.push(via);
@@ -36,14 +53,23 @@ function aggiungiPreferita(via) {
     }
 }
 
-// Mostra la lista delle vie preferite
+// Mostra la lista dei preferiti con possibilità di rimozione
 function aggiornaListaPreferiti() {
-    const lista = document.getElementById('lista-preferiti');
-    lista.innerHTML = '';
+    listaPreferiti.innerHTML = '';
     preferite.forEach(via => {
         const li = document.createElement('li');
         li.textContent = via;
-        lista.appendChild(li);
+
+        const btnRimuovi = document.createElement('button');
+        btnRimuovi.textContent = '×';
+        btnRimuovi.className = 'rimuovi';
+        btnRimuovi.title = 'Rimuovi dai preferiti';
+        btnRimuovi.addEventListener('click', () => {
+            preferite = preferite.filter(v => v !== via);
+            aggiornaListaPreferiti();
+        });
+
+        li.appendChild(btnRimuovi);
+        listaPreferiti.appendChild(li);
     });
 }
-
