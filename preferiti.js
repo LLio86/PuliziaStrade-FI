@@ -7,7 +7,6 @@ const listaPreferiti = document.getElementById('lista-preferiti');
 
 inputRicerca.disabled = true;
 
-// Carica e prepara i dati dal GeoJSON
 fetch('pulizia_firenze.geojson')
     .then(response => response.json())
     .then(data => {
@@ -20,10 +19,9 @@ fetch('pulizia_firenze.geojson')
     })
     .catch(err => {
         console.error('Errore nel caricamento del GeoJSON:', err);
-        inputRicerca.placeholder = 'Errore nel caricamento dei dati';
+        inputRicerca.placeholder = 'Errore nel caricamento dati';
     });
 
-// Ricerca dinamica
 inputRicerca.addEventListener('input', function () {
     const query = this.value.toLowerCase();
     const risultati = vieDisponibili.filter(via =>
@@ -32,7 +30,6 @@ inputRicerca.addEventListener('input', function () {
     mostraRisultati(risultati);
 });
 
-// Mostra i risultati cliccabili
 function mostraRisultati(risultati) {
     contenitoreRisultati.innerHTML = '';
     risultati.slice(0, 10).forEach(via => {
@@ -44,7 +41,6 @@ function mostraRisultati(risultati) {
     });
 }
 
-// Aggiunge ai preferiti
 function aggiungiPreferita(via) {
     if (!preferite.includes(via)) {
         preferite.push(via);
@@ -52,7 +48,6 @@ function aggiungiPreferita(via) {
     }
 }
 
-// Mostra la lista dei preferiti
 function aggiornaListaPreferiti() {
     listaPreferiti.innerHTML = '';
     preferite.forEach(via => {
@@ -62,7 +57,7 @@ function aggiornaListaPreferiti() {
         const btnRimuovi = document.createElement('button');
         btnRimuovi.textContent = '×';
         btnRimuovi.className = 'rimuovi';
-        btnRimuovi.title = 'Rimuovi';
+        btnRimuovi.title = 'Rimuovi dai preferiti';
         btnRimuovi.addEventListener('click', () => {
             preferite = preferite.filter(v => v !== via);
             aggiornaListaPreferiti();
