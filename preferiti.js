@@ -1,20 +1,19 @@
-let vieDisponibili = [];  // Sarà popolato dal GeoJSON
+let vieDisponibili = [];
 let preferite = [];
 
 const inputRicerca = document.getElementById('ricerca-via');
 const contenitoreRisultati = document.getElementById('risultati-ricerca');
 const listaPreferiti = document.getElementById('lista-preferiti');
 
-// Disattiva input fino a quando i dati sono pronti
 inputRicerca.disabled = true;
 
-// Carica e prepara i dati dal file GeoJSON
+// Carica e prepara i dati dal GeoJSON
 fetch('pulizia_firenze.geojson')
     .then(response => response.json())
     .then(data => {
         vieDisponibili = [...new Set(
             data.features
-                .map(f => f.properties.nome_via)
+                .map(f => f.properties.indirizzo)
                 .filter(nome => typeof nome === 'string' && nome.trim() !== '')
         )];
         inputRicerca.disabled = false;
@@ -24,7 +23,7 @@ fetch('pulizia_firenze.geojson')
         inputRicerca.placeholder = 'Errore nel caricamento dei dati';
     });
 
-// Ricerca le vie mentre l'utente digita
+// Ricerca dinamica
 inputRicerca.addEventListener('input', function () {
     const query = this.value.toLowerCase();
     const risultati = vieDisponibili.filter(via =>
@@ -33,7 +32,7 @@ inputRicerca.addEventListener('input', function () {
     mostraRisultati(risultati);
 });
 
-// Mostra i risultati come elenco cliccabile
+// Mostra i risultati cliccabili
 function mostraRisultati(risultati) {
     contenitoreRisultati.innerHTML = '';
     risultati.slice(0, 10).forEach(via => {
@@ -45,7 +44,7 @@ function mostraRisultati(risultati) {
     });
 }
 
-// Aggiunge una via ai preferiti se non già presente
+// Aggiunge ai preferiti
 function aggiungiPreferita(via) {
     if (!preferite.includes(via)) {
         preferite.push(via);
@@ -53,7 +52,7 @@ function aggiungiPreferita(via) {
     }
 }
 
-// Mostra la lista dei preferiti con possibilità di rimozione
+// Mostra la lista dei preferiti
 function aggiornaListaPreferiti() {
     listaPreferiti.innerHTML = '';
     preferite.forEach(via => {
@@ -63,7 +62,7 @@ function aggiornaListaPreferiti() {
         const btnRimuovi = document.createElement('button');
         btnRimuovi.textContent = '×';
         btnRimuovi.className = 'rimuovi';
-        btnRimuovi.title = 'Rimuovi dai preferiti';
+        btnRimuovi.title = 'Rimuovi';
         btnRimuovi.addEventListener('click', () => {
             preferite = preferite.filter(v => v !== via);
             aggiornaListaPreferiti();
