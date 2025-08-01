@@ -2,7 +2,7 @@ let vieDisponibili = [];  // Popolato dal GeoJSON
 let preferite = [];
 
 // Carica e legge il GeoJSON (es. 'strade.geojson')
-fetch('strade.geojson')
+fetch('pulizia_firenze.geojson')
     .then(response => response.json())
     .then(data => {
         vieDisponibili = data.features.map(f => f.properties.nome_via); // Assumi campo "nome_via"
@@ -46,3 +46,4 @@ function aggiornaListaPreferiti() {
         lista.appendChild(li);
     });
 }
+
