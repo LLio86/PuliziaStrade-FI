@@ -1,5 +1,7 @@
 let vieDisponibili = [];
 let preferite = [];
+vieDisponibili = ["BORGO ALLEGRI", "VIA ROMA", "VIA GIUSTI"];
+inputRicerca.disabled = false;
 
 const inputRicerca = document.getElementById('ricerca-via');
 const contenitoreRisultati = document.getElementById('risultati-ricerca');
@@ -67,3 +69,4 @@ function aggiornaListaPreferiti() {
         listaPreferiti.appendChild(li);
     });
 }
+
