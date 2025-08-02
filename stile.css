@@ -239,3 +239,8 @@ body {
 #risultati-ricerca .risultato:hover {
     background-color: #ddd;
 }
+
+#ricerca-via {
+  font-size: 16px;
+}
+
