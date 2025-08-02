@@ -1,96 +1,100 @@
 const STORAGE_KEY = 'mieViePreferite';
-const inputRicerca = document.getElementById("input-via");
-const risultatiContainer = document.getElementById("risultati-vie");
-const preferitiContainer = document.getElementById("lista-preferiti");
+let vieDisponibili = [];
+let preferite = [];
 
-function caricaPreferiti() {
-    const salvati = localStorage.getItem(STORAGE_KEY);
-    return salvati ? JSON.parse(salvati) : [];
-}
+// Elementi DOM
+const ricercaEl = document.getElementById('ricerca-via');
+const risultatiEl = document.getElementById('risultati-ricerca');
+const preferitiEl = document.getElementById('lista-preferiti');
 
-function salvaPreferiti(preferiti) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferiti));
-}
+// Carica preferite da localStorage all'avvio
+const saved = localStorage.getItem(STORAGE_KEY);
+preferite = saved ? JSON.parse(saved) : [];
+console.log('Preferiti caricati:', preferite);
+aggiornaListaPreferiti();
 
-function aggiungiPreferito(via) {
-    let preferiti = caricaPreferiti();
-    if (!preferiti.includes(via)) {
-        preferiti.push(via);
-        salvaPreferiti(preferiti);
-        aggiornaListaPreferiti();
-    }
-}
+// Carica vie disponibili da GeoJSON
+fetch('pulizia_firenze.geojson')
+  .then(res => res.json())
+  .then(data => {
+    vieDisponibili = data.features
+      .map(f => {
+        const indirizzo = estraiValoreDescrizione(f.properties.description || '', 'indirizzo');
+        return indirizzo ? indirizzo.trim() : null;
+      })
+      .filter(v => v);
+    console.log('Vie disponibili:', vieDisponibili);
+  })
+  .catch(err => console.error('Errore caricamento vie:', err));
 
-function rimuoviPreferito(via) {
-    let preferiti = caricaPreferiti().filter(v => v !== via);
-    salvaPreferiti(preferiti);
-    aggiornaListaPreferiti();
-}
-
-function aggiornaListaPreferiti() {
-    const preferiti = caricaPreferiti();
-    preferitiContainer.innerHTML = '';
-
-    if (preferiti.length === 0) {
-        preferitiContainer.innerHTML = "<em>Nessuna via preferita salvata.</em>";
-        return;
-    }
-
-    preferiti.forEach(via => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "preferito-item";
-
-        const titolo = document.createElement("h4");
-        titolo.textContent = via;
-
-        const dettagli = document.createElement("div");
-        dettagli.innerHTML = getPuliziaInfo(via);
-
-        const btnRimuovi = document.createElement("button");
-        btnRimuovi.textContent = "Rimuovi";
-        btnRimuovi.className = "btn-rimuovi";
-        btnRimuovi.onclick = () => rimuoviPreferito(via);
-
-        wrapper.appendChild(titolo);
-        wrapper.appendChild(dettagli);
-        wrapper.appendChild(btnRimuovi);
-
-        preferitiContainer.appendChild(wrapper);
-    });
-}
-
-inputRicerca.addEventListener("input", () => {
-    const query = inputRicerca.value.trim().toLowerCase();
-    risultatiContainer.innerHTML = '';
-
-    if (!query) return;
-
-    const vieDisponibili = (pulizieGeoJSON?.features || []).map(f => {
-        const descrizione = f.properties.description || "";
-        const indirizzo = estraiValoreDescrizione(descrizione, "indirizzo");
-        return indirizzo;
-    }).filter(Boolean);
-
-    const risultati = vieDisponibili
-        .filter(v => v.toLowerCase().includes(query))
-        .slice(0, 10);
-
-    if (risultati.length === 0) {
-        risultatiContainer.innerHTML = "<em>Nessun risultato</em>";
-        return;
-    }
-
-    risultati.forEach(via => {
-        const voce = document.createElement("div");
-        voce.textContent = via;
-        voce.className = "risultato-via";
-        voce.onclick = () => {
-            aggiungiPreferito(via);
-            inputRicerca.value = '';
-            risultatiContainer.innerHTML = '';
-        };
-        risultatiContainer.appendChild(voce);
-    });
+// Ricerca dinamica
+ricercaEl.addEventListener('input', () => {
+  const query = ricercaEl.value.toLowerCase().trim();
+  if (!query) {
+    mostraRisultati([]);
+    return;
+  }
+  const risultati = vieDisponibili.filter(via => via.toLowerCase().includes(query));
+  mostraRisultati(risultati);
 });
 
-document.addEventListener("DOMContentLoaded", aggiornaListaPreferiti);
+// Mostra risultati ricerca
+function mostraRisultati(risultati) {
+  risultatiEl.innerHTML = '';
+  if (risultati.length === 0) {
+    risultatiEl.innerHTML = '<em>Nessun risultato</em>';
+    return;
+  }
+  risultati.slice(0, 10).forEach(via => {
+    const div = document.createElement('div');
+    div.textContent = via;
+    div.className = 'risultato';
+    div.addEventListener('click', () => {
+      aggiungiPreferita(via);
+    });
+    risultatiEl.appendChild(div);
+  });
+}
+
+// Aggiungi preferito e salva
+function aggiungiPreferita(via) {
+  if (!preferite.includes(via)) {
+    preferite.push(via);
+    salvaPreferiti();
+    aggiornaListaPreferiti();
+  }
+}
+
+// Salva preferiti su localStorage
+function salvaPreferiti() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(preferite));
+  console.log('Preferiti salvati:', preferite);
+}
+
+// Aggiorna la lista preferiti con pulsante rimuovi
+function aggiornaListaPreferiti() {
+  preferitiEl.innerHTML = '';
+  if (preferite.length === 0) {
+    preferitiEl.innerHTML = '<li>Nessuna via preferita</li>';
+    return;
+  }
+  preferite.forEach(via => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <strong>${via}</strong>
+      <button class="rimuovi">×</button>
+      <div class="info-pulizia">${getPuliziaInfo(via)}</div>
+    `;
+    li.querySelector('.rimuovi').addEventListener('click', () => {
+      rimuoviPreferita(via);
+    });
+    preferitiEl.appendChild(li);
+  });
+}
+
+// Rimuovi preferito e aggiorna storage/UI
+function rimuoviPreferita(via) {
+  preferite = preferite.filter(v => v !== via);
+  salvaPreferiti();
+  aggiornaListaPreferiti();
+}
