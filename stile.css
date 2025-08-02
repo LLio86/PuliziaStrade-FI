@@ -229,18 +229,23 @@ body {
 }
 
 #risultati-ricerca .risultato {
-    padding: 5px;
-    cursor: pointer;
-    background-color: #eee;
-    margin-top: 4px;
-    border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+  background-color: var(--colore-box-bg);
+  color: var(--colore-box-testo);
+  margin-top: 4px;
+  border-radius: 5px;
+  border: 1px solid var(--colore-box-bordo);
 }
 
 #risultati-ricerca .risultato:hover {
-    background-color: #ddd;
+  background-color: var(--colore-box-accento);
+  color: var(--colore-header-testo); /* o colore-testo se vuoi coerenza */
 }
+
 
 #ricerca-via {
   font-size: 16px;
 }
+
 
