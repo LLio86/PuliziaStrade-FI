@@ -17,15 +17,16 @@ aggiornaListaPreferiti();
 fetch('pulizia_firenze.geojson')
   .then(res => res.json())
   .then(data => {
-    vieDisponibili = data.features
-      .map(f => {
-        const indirizzo = estraiValoreDescrizione(f.properties.description || '', 'indirizzo');
-        return indirizzo ? indirizzo.trim() : null;
-      })
-      .filter(v => v);
-    console.log('Vie disponibili:', vieDisponibili);
-  })
-  .catch(err => console.error('Errore caricamento vie:', err));
+    datiPulizia = data.features;
+
+    vieDisponibili = Array.from(new Set(
+      datiPulizia
+        .map(f => estraiValoreDescrizione(f.properties.description || '', 'indirizzo'))
+        .filter(v => v)
+    ));
+
+    aggiornaListaPreferiti();
+  });
 
 // Ricerca dinamica
 ricercaEl.addEventListener('input', () => {
@@ -98,3 +99,4 @@ function rimuoviPreferita(via) {
   salvaPreferiti();
   aggiornaListaPreferiti();
 }
+
