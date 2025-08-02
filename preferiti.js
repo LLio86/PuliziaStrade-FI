@@ -1,62 +1,51 @@
-const STORAGE_KEY = 'mieViePreferite';
-let vieDisponibili = [];
+let vieDisponibili = [];  // Sarà popolato dal GeoJSON
 let preferite = [];
 
-// Elementi DOM
-const ricercaEl = document.getElementById('ricerca-via');
-const risultatiEl = document.getElementById('risultati-ricerca');
-const preferitiEl = document.getElementById('lista-preferiti');
+let pulizieGeoJSON = null;
 
-// Carica preferite da localStorage all'avvio
-const saved = localStorage.getItem(STORAGE_KEY);
-preferite = saved ? JSON.parse(saved) : [];
-console.log('Preferiti caricati:', preferite);
-aggiornaListaPreferiti();
-
-// Carica vie disponibili da GeoJSON
+// Carica il GeoJSON con i dati delle pulizie
 fetch('pulizia_firenze.geojson')
-  .then(res => res.json())
+  .then(response => response.json())
   .then(data => {
-    vieDisponibili = data.features
-      .map(f => {
-        const indirizzo = estraiValoreDescrizione(f.properties.description || '', 'indirizzo');
-        return indirizzo ? indirizzo.trim() : null;
-      })
-      .filter(v => v);
-    console.log('Vie disponibili:', vieDisponibili);
-  })
-  .catch(err => console.error('Errore caricamento vie:', err));
+    pulizieGeoJSON = data;
+    vieDisponibili = data.features.map(f => f.properties.nome_via).filter(Boolean);
+    console.log("GeoJSON caricato:", vieDisponibili);
+    caricaPreferiti();
+    aggiornaListaPreferiti();
+  });
 
-// Ricerca dinamica
-ricercaEl.addEventListener('input', () => {
-  const query = ricercaEl.value.toLowerCase().trim();
-  if (!query) {
-    mostraRisultati([]);
-    return;
-  }
+// Elementi DOM
+const inputRicerca = document.getElementById('ricerca-via');
+const risultatiEl = document.getElementById('risultati-ricerca');
+const listaPreferitiEl = document.getElementById('lista-preferiti');
+
+// Event listener per l'input di ricerca
+inputRicerca.addEventListener('input', () => {
+  const query = inputRicerca.value.toLowerCase();
   const risultati = vieDisponibili.filter(via => via.toLowerCase().includes(query));
   mostraRisultati(risultati);
 });
 
-// Mostra risultati ricerca
 function mostraRisultati(risultati) {
   risultatiEl.innerHTML = '';
   if (risultati.length === 0) {
-    risultatiEl.innerHTML = '<em>Nessun risultato</em>';
+    risultatiEl.textContent = 'Nessun risultato';
     return;
   }
+
   risultati.slice(0, 10).forEach(via => {
     const div = document.createElement('div');
     div.textContent = via;
     div.className = 'risultato';
     div.addEventListener('click', () => {
       aggiungiPreferita(via);
+      inputRicerca.value = '';
+      risultatiEl.innerHTML = '';
     });
     risultatiEl.appendChild(div);
   });
 }
 
-// Aggiungi preferito e salva
 function aggiungiPreferita(via) {
   if (!preferite.includes(via)) {
     preferite.push(via);
@@ -65,36 +54,97 @@ function aggiungiPreferita(via) {
   }
 }
 
-// Salva preferiti su localStorage
-function salvaPreferiti() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(preferite));
-  console.log('Preferiti salvati:', preferite);
-}
-
-// Aggiorna la lista preferiti con pulsante rimuovi
-function aggiornaListaPreferiti() {
-  preferitiEl.innerHTML = '';
-  if (preferite.length === 0) {
-    preferitiEl.innerHTML = '<li>Nessuna via preferita</li>';
-    return;
-  }
-  preferite.forEach(via => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <strong>${via}</strong>
-      <button class="rimuovi">×</button>
-      <div class="info-pulizia">${getPuliziaInfo(via)}</div>
-    `;
-    li.querySelector('.rimuovi').addEventListener('click', () => {
-      rimuoviPreferita(via);
-    });
-    preferitiEl.appendChild(li);
-  });
-}
-
-// Rimuovi preferito e aggiorna storage/UI
 function rimuoviPreferita(via) {
   preferite = preferite.filter(v => v !== via);
   salvaPreferiti();
   aggiornaListaPreferiti();
+}
+
+function aggiornaListaPreferiti() {
+  listaPreferitiEl.innerHTML = '';
+  preferite.forEach(via => {
+    const li = document.createElement('li');
+    
+    const titolo = document.createElement('strong');
+    titolo.textContent = via;
+    
+    const btn = document.createElement('button');
+    btn.textContent = '❌';
+    btn.onclick = () => rimuoviPreferita(via);
+
+    const dettagli = document.createElement('div');
+    dettagli.innerHTML = getPuliziaInfo(via);
+
+    li.appendChild(titolo);
+    li.appendChild(document.createTextNode(' '));
+    li.appendChild(btn);
+    li.appendChild(dettagli);
+
+    listaPreferitiEl.appendChild(li);
+  });
+}
+
+function salvaPreferiti() {
+  localStorage.setItem('preferite', JSON.stringify(preferite));
+}
+
+function caricaPreferiti() {
+  const salvate = localStorage.getItem('preferite');
+  if (salvate) {
+    preferite = JSON.parse(salvate);
+  }
+}
+
+function getPuliziaInfo(via) {
+  if (!pulizieGeoJSON) return "Dati non disponibili";
+
+  const matches = pulizieGeoJSON.features.filter(f => {
+    const desc = f.properties.description || "";
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo")?.toLowerCase() || "";
+    return indirizzo && via.toLowerCase().includes(indirizzo);
+  });
+
+  if (matches.length === 0) return "Nessuna pulizia programmata.";
+
+  return matches.map(f => {
+    const desc = f.properties.description || "";
+
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "ND";
+    const giorno = estraiValoreDescrizione(desc, "giorno_settimana") || "ND";
+    const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "-";
+    const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
+    const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
+
+    const settimane = [];
+    if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+    if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+    if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+    if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+    if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+    const settimaneText = settimane.join(", ") || "Non specificate";
+
+    return `
+      <div>
+        Giorno: <strong>${giorno}</strong><br>
+        Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
+        Settimane: <strong>${settimaneText}</strong><br>
+        ${tratto ? `Tratto: <em>${tratto}</em>` : ""}
+      </div>
+    `;
+  }).join("<hr>");
+}
+
+function estraiValoreDescrizione(html, chiave) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  const items = div.querySelectorAll("li");
+  for (const li of items) {
+    const nome = li.querySelector(".atr-name")?.textContent?.trim().toLowerCase();
+    const valore = li.querySelector(".atr-value")?.textContent?.trim();
+    if (nome === chiave.toLowerCase()) {
+      return valore;
+    }
+  }
+  return null;
 }
