@@ -43,7 +43,7 @@ ricercaEl.addEventListener('input', () => {
 function mostraRisultati(risultati) {
   risultatiEl.innerHTML = '';
   if (risultati.length === 0) {
-    risultatiEl.innerHTML = '<em>Nessun risultato</em>';
+    risultatiEl.innerHTML = '<em></em>';
     return;
   }
   risultati.slice(0, 10).forEach(via => {
@@ -103,5 +103,6 @@ function rimuoviPreferita(via) {
   salvaPreferiti();
   aggiornaListaPreferiti();
 }
+
 
 
