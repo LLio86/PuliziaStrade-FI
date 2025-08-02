@@ -64,6 +64,10 @@ function aggiungiPreferita(via) {
     salvaPreferiti();
     aggiornaListaPreferiti();
   }
+  // Svuota la casella di ricerca
+  ricercaEl.value = '';
+  // Pulisci i risultati mostrati
+  mostraRisultati([]);
 }
 
 // Salva preferiti su localStorage
@@ -99,4 +103,5 @@ function rimuoviPreferita(via) {
   salvaPreferiti();
   aggiornaListaPreferiti();
 }
+
 
