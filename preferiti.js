@@ -1,68 +1,100 @@
+const STORAGE_KEY = 'mieViePreferite';
 let vieDisponibili = [];
 let preferite = [];
 
+// Elementi DOM
 const ricercaEl = document.getElementById('ricerca-via');
 const risultatiEl = document.getElementById('risultati-ricerca');
 const preferitiEl = document.getElementById('lista-preferiti');
 
+// Carica preferite da localStorage all'avvio
+const saved = localStorage.getItem(STORAGE_KEY);
+preferite = saved ? JSON.parse(saved) : [];
+console.log('Preferiti caricati:', preferite);
+aggiornaListaPreferiti();
+
+// Carica vie disponibili da GeoJSON
 fetch('pulizia_firenze.geojson')
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
-    console.log("Caricato GeoJSON per ricerca:", data);
-    vieDisponibili = data.features.map(f => {
-      const html = f.properties.description || "";
-      const indirizzo = estraiValoreDescrizione(html, "indirizzo");
-      return indirizzo ? indirizzo.trim() : null;
-    }).filter(v => v !== null);
+    vieDisponibili = data.features
+      .map(f => {
+        const indirizzo = estraiValoreDescrizione(f.properties.description || '', 'indirizzo');
+        return indirizzo ? indirizzo.trim() : null;
+      })
+      .filter(v => v);
+    console.log('Vie disponibili:', vieDisponibili);
+  })
+  .catch(err => console.error('Errore caricamento vie:', err));
 
-    console.log("Vie disponibili per ricerca:", vieDisponibili);
-  });
-
-// Event listener ricerca input
+// Ricerca dinamica
 ricercaEl.addEventListener('input', () => {
   const query = ricercaEl.value.toLowerCase().trim();
-  if (query.length === 0) {
+  if (!query) {
     mostraRisultati([]);
     return;
   }
-
   const risultati = vieDisponibili.filter(via => via.toLowerCase().includes(query));
   mostraRisultati(risultati);
 });
 
-// Mostra risultati della ricerca
+// Mostra risultati ricerca
 function mostraRisultati(risultati) {
   risultatiEl.innerHTML = '';
-
   if (risultati.length === 0) {
     risultatiEl.innerHTML = '<em>Nessun risultato</em>';
     return;
   }
-
   risultati.slice(0, 10).forEach(via => {
     const div = document.createElement('div');
     div.textContent = via;
     div.className = 'risultato';
-    div.addEventListener('click', () => aggiungiPreferita(via));
+    div.addEventListener('click', () => {
+      aggiungiPreferita(via);
+    });
     risultatiEl.appendChild(div);
   });
 }
 
-// Aggiungi via ai preferiti
+// Aggiungi preferito e salva
 function aggiungiPreferita(via) {
   if (!preferite.includes(via)) {
     preferite.push(via);
+    salvaPreferiti();
     aggiornaListaPreferiti();
   }
 }
 
-// Mostra vie preferite e info pulizia
+// Salva preferiti su localStorage
+function salvaPreferiti() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(preferite));
+  console.log('Preferiti salvati:', preferite);
+}
+
+// Aggiorna la lista preferiti con pulsante rimuovi
 function aggiornaListaPreferiti() {
   preferitiEl.innerHTML = '';
-
+  if (preferite.length === 0) {
+    preferitiEl.innerHTML = '<li>Nessuna via preferita</li>';
+    return;
+  }
   preferite.forEach(via => {
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${via}</strong><br>${getPuliziaInfo(via)}`;
+    li.innerHTML = `
+      <strong>${via}</strong>
+      <button class="rimuovi">×</button>
+      <div class="info-pulizia">${getPuliziaInfo(via)}</div>
+    `;
+    li.querySelector('.rimuovi').addEventListener('click', () => {
+      rimuoviPreferita(via);
+    });
     preferitiEl.appendChild(li);
   });
+}
+
+// Rimuovi preferito e aggiorna storage/UI
+function rimuoviPreferita(via) {
+  preferite = preferite.filter(v => v !== via);
+  salvaPreferiti();
+  aggiornaListaPreferiti();
 }
