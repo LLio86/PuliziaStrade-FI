@@ -171,7 +171,7 @@ if (diffGiorni === 1) {
 
 
             return `
-            <div class="pulizia-entry">
+            <div class="pulizia-entry ${classeData}">
               <strong>${indirizzo}</strong><br>
               Giorno: <strong>${giornoNome}</strong><br>
               Orario: <strong>${oraInizio}</strong> - <strong>${oraFine}</strong><br>
@@ -403,6 +403,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
