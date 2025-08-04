@@ -144,13 +144,16 @@ function getPuliziaInfo(via) {
                 const diffGiorni = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
                 let extraInfo = "";
-                if (diffGiorni === 1) {
-                    extraInfo = "(domani)";
-                } else if (diffGiorni === 0) {
-                    extraInfo = "(oggi)";
-                } else if (diffGiorni > 1) {
-                    extraInfo = `(tra ${diffGiorni} giorni)`;
-                }
+let classeData = "";
+
+if (diffGiorni === 1) {
+    extraInfo = "(domani)";
+    classeData = "pulizia-domani";
+} else if (diffGiorni > 1 && diffGiorni <= 3) {
+    extraInfo = `(tra ${diffGiorni} giorni)`;
+    classeData = "pulizia-prossimi";
+}
+
 
                 prossimaDataStr = `${prossimaData.toLocaleDateString("it-IT", {
     weekday: 'long',
@@ -400,6 +403,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
