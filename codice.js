@@ -16,7 +16,7 @@ fetch('pulizia_firenze.geojson')
     .then(data => {
         pulizieGeoJSON = data;
         console.log("Dati pulizia caricati:", data);
-
+        aggiornaListaPreferiti();
         // Aggiorna lista vie in pulizia oggi
         const listaDiv = document.getElementById("lista-pulizie-oggi");
         if (listaDiv) {
@@ -383,4 +383,5 @@ function filtraPulizieOggi() {
     </div>`;
     }).join("");
 }
+
 
