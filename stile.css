@@ -295,3 +295,17 @@ body {
   font-size: 0.9em;
 }
 
+.pulizia-domani {
+  background-color: #ffdddd;
+  border-left: 4px solid red;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
+.pulizia-prossimi {
+  background-color: #fff4e5;
+  border-left: 4px solid orange;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+
