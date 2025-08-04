@@ -51,5 +51,13 @@ temaSelect.addEventListener('change', function () {
 temaAutoCheckbox.addEventListener('change', function () {
   localStorage.setItem('temaAuto', this.checked);
   aggiornaStatoSelettoreTema();
-  location.reload(); // ricarica pagina per applicare tema corretto
+
+  // Applica subito il tema senza ricaricare la pagina
+  let temaDaApplicare;
+  if (this.checked) {
+    temaDaApplicare = èNotte() ? 'scuro' : 'chiaro';
+  } else {
+    temaDaApplicare = temaSelect.value;
+  }
+  applicaTema(temaDaApplicare);
 });
