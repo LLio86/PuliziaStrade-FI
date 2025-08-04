@@ -11,6 +11,7 @@ const filesToCache = [
   '/pulsante.js',
   '/stile.css',
   '/codice.js',
+  '/pulizie_prossime.js',
   '/preferiti.js',
   '/tema.js'
   
