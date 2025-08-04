@@ -330,8 +330,6 @@ function filtraPulizieOggi() {
     const oggi = new Date();
     const giorniSettimanaIT = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
     const giornoNome = giorniSettimanaIT[oggi.getDay()];
-
-    // Calcola la settimana corrente del mese
     const settimanaCorrente = Math.floor((oggi.getDate() - 1) / 7) + 1;
     const settimanaStr = settimanaCorrente + "ª";
 
@@ -342,19 +340,13 @@ function filtraPulizieOggi() {
 
         const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "";
         const giorniMap = {
-            LU: "Lunedì",
-            MA: "Martedì",
-            ME: "Mercoledì",
-            GI: "Giovedì",
-            VE: "Venerdì",
-            SA: "Sabato",
-            DO: "Domenica"
+            LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+            GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
         };
         const giornoPulizia = giorniMap[giornoCod.toUpperCase()] || "";
 
         if (giornoPulizia !== giornoNome) return false;
 
-        // Controllo settimana
         const settimane = [];
         if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
         if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
@@ -369,41 +361,46 @@ function filtraPulizieOggi() {
         return "<em>Nessuna pulizia programmata per oggi.</em>";
     }
 
+    // Ordinamento per ora e poi indirizzo
     pulizieOggi.sort((a, b) => {
-    const descA = a.properties.description || "";
-    const descB = b.properties.description || "";
+        const descA = a.properties.description || "";
+        const descB = b.properties.description || "";
 
-    const oraA = estraiValoreDescrizione(descA, "ora_inizio") || "00:00";
-    const oraB = estraiValoreDescrizione(descB, "ora_inizio") || "00:00";
+        const oraA = estraiValoreDescrizione(descA, "ora_inizio") || "00:00";
+        const oraB = estraiValoreDescrizione(descB, "ora_inizio") || "00:00";
 
-    const indirizzoA = estraiValoreDescrizione(descA, "indirizzo") || "";
-    const indirizzoB = estraiValoreDescrizione(descB, "indirizzo") || "";
+        const indirizzoA = estraiValoreDescrizione(descA, "indirizzo") || "";
+        const indirizzoB = estraiValoreDescrizione(descB, "indirizzo") || "";
 
-    // Prima ordina per orario
-    const confrontoOrario = oraA.localeCompare(oraB);
-    if (confrontoOrario !== 0) return confrontoOrario;
+        const confrontoOrario = oraA.localeCompare(oraB);
+        if (confrontoOrario !== 0) return confrontoOrario;
 
-    // Se gli orari sono uguali, ordina per indirizzo
-    return indirizzoA.localeCompare(indirizzoB);
-});
+        return indirizzoA.localeCompare(indirizzoB);
+    });
 
+    const oraAttuale = oggi.getHours().toString().padStart(2, "0") + ":" + oggi.getMinutes().toString().padStart(2, "0");
 
-    // Crea lista HTML
     return pulizieOggi.map(f => {
         const desc = f.properties.description || "";
+
         const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "Indirizzo non specificato";
         const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "-";
         const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
         const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
 
-        
-        return `<div class="pulizia-entry">
-        <strong>${indirizzo}</strong> (${orarioDisplay})<br>
-        <em>${tratto}</em>
-        </div>`;
+        const conclusa = oraFine < oraAttuale;
 
+        const orarioDisplay = conclusa
+            ? `<s>${oraInizio} - ${oraFine}</s> <span class="conclusa">conclusa</span>`
+            : `<strong>${oraInizio} - ${oraFine}</strong>`;
+
+        return `<div class="pulizia-entry">
+            <strong>${indirizzo}</strong> (${orarioDisplay})<br>
+            <em>${tratto}</em>
+        </div>`;
     }).join("");
 }
+
 
 
 
