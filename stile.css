@@ -248,4 +248,44 @@ body {
   font-size: 16px;
 }
 
+.switch-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: sans-serif;
+  cursor: pointer;
+}
+
+.switch-label input[type="checkbox"] {
+  display: none;
+}
+
+.switch-slider {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background-color: #ccc;
+  border-radius: 50px;
+  transition: background-color 0.3s;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 2px;
+  top: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.switch-label input:checked + .switch-slider {
+  background-color: #4caf50;
+}
+
+.switch-label input:checked + .switch-slider::before {
+  transform: translateX(18px);
+}
 
