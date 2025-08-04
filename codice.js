@@ -369,6 +369,25 @@ function filtraPulizieOggi() {
         return "<em>Nessuna pulizia programmata per oggi.</em>";
     }
 
+    pulizieOggi.sort((a, b) => {
+    const descA = a.properties.description || "";
+    const descB = b.properties.description || "";
+
+    const oraA = estraiValoreDescrizione(descA, "ora_inizio") || "00:00";
+    const oraB = estraiValoreDescrizione(descB, "ora_inizio") || "00:00";
+
+    const indirizzoA = estraiValoreDescrizione(descA, "indirizzo") || "";
+    const indirizzoB = estraiValoreDescrizione(descB, "indirizzo") || "";
+
+    // Prima ordina per orario
+    const confrontoOrario = oraA.localeCompare(oraB);
+    if (confrontoOrario !== 0) return confrontoOrario;
+
+    // Se gli orari sono uguali, ordina per indirizzo
+    return indirizzoA.localeCompare(indirizzoB);
+});
+
+
     // Crea lista HTML
     return pulizieOggi.map(f => {
         const desc = f.properties.description || "";
@@ -383,6 +402,7 @@ function filtraPulizieOggi() {
     </div>`;
     }).join("");
 }
+
 
 
 
