@@ -396,12 +396,15 @@ function filtraPulizieOggi() {
         const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
         const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
 
+        
         return `<div class="pulizia-entry">
-      <strong>${indirizzo}</strong> (${oraInizio} - ${oraFine})<br>
-      <em>${tratto}</em>
-    </div>`;
+        <strong>${indirizzo}</strong> (${orarioDisplay})<br>
+        <em>${tratto}</em>
+        </div>`;
+
     }).join("");
 }
+
 
 
 
