@@ -225,7 +225,7 @@ body {
 
 .sezione {
   padding-top: 60px;
-  /*padding-bottom: calc(60px + env(safe-area-inset-bottom));*/
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 #risultati-ricerca .risultato {
@@ -288,6 +288,7 @@ body {
 .switch-label input:checked + .switch-slider::before {
   transform: translateX(18px);
 }
+
 
 
 
