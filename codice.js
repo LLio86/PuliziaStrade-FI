@@ -3,6 +3,8 @@ const coordsEl = document.getElementById("coords");
 const puliziaEl = document.getElementById("pulizia");
 const map = L.map('map').setView([43.7696, 11.2558], 15);
 
+let trackingTimer = null;
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19
 }).addTo(map);
@@ -222,8 +224,11 @@ const autoIcon = L.icon({
 let autoCenter = true;
 
 map.on('movestart', () => {
-    autoCenter = false; // L’utente ha spostato la mappa manualmente
-    tracking = false;
+  tracking = false;
+  if (trackingTimer) {
+    clearInterval(trackingTimer);
+    trackingTimer = null;
+  }
 });
 
 function aggiornaPosizione(lat, lon) {
@@ -249,12 +254,12 @@ const LocateControl = L.Control.extend({
     //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
 
     container.onclick = function () {
-      tracking = true;
-      autoCenter = true;
-      if (marker) {
-        map.setView(marker.getLatLng(), map.getZoom());
-      }
-    };
+  tracking = true;
+  if (marker) {
+    map.setView(marker.getLatLng(), map.getZoom());
+  }
+  avviaTrackingContinuo(); // <--- nuovo: riavvia l'aggiornamento continuo
+};
 
     L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
 
@@ -271,15 +276,28 @@ function onLocationError(e) {
     alert("Errore nel trovare la posizione: " + e.message);
 }
 
+function avviaTrackingContinuo() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+    });
+
+    if (!trackingTimer) {
+      trackingTimer = setInterval(() => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+        });
+      }, 1000);
+    }
+  } else {
+    alert("Geolocalizzazione non supportata dal browser.");
+  }
+}
+
+
 // Watch continuo: aggiorna ogni movimento
 if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(
-    (pos) => {
-      aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
-    },
-    onLocationError,
-    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
-  );
+  avviaTrackingContinuo();
 } else {
   alert("Geolocalizzazione non supportata dal browser.");
 }
@@ -365,3 +383,4 @@ function filtraPulizieOggi() {
     </div>`;
     }).join("");
 }
+
