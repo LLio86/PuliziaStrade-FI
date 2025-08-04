@@ -138,13 +138,15 @@ function getPuliziaInfo(via) {
 
 
             let prossimaDataStr;
+            let classeData = "";
+            
             if (prossimaData) {
                 const oggi = new Date();
                 const diffTime = prossimaData.setHours(0, 0, 0, 0) - oggi.setHours(0, 0, 0, 0);
                 const diffGiorni = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
                 let extraInfo = "";
-let classeData = "";
+
 
 if (diffGiorni === 1) {
     extraInfo = "(domani)";
@@ -403,6 +405,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
