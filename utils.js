@@ -47,7 +47,10 @@ function calcolaProssimaDataPulizia(giornoSettimana, settimaneValide) {
     }
 
     function trovaProssima(dataList) {
-        return dataList.find(({ data, settimana }) => {
+        return dataList.find(({
+            data,
+            settimana
+        }) => {
             const weekNum = `${settimana}ª`;
             return settimaneValide.includes(weekNum) && data >= oggi;
         });
@@ -66,7 +69,7 @@ function calcolaProssimaDataPulizia(giornoSettimana, settimaneValide) {
     return matchSuccessivo?.data || null;
 }
 
-function getPuliziaInfo(via, pulizieGeoJSON) {
+function getPuliziaInfo(via) {
     if (!pulizieGeoJSON) return "Dati non disponibili";
 
     const features = pulizieGeoJSON.features;
@@ -109,6 +112,7 @@ function getPuliziaInfo(via, pulizieGeoJSON) {
 
             const prossimaData = calcolaProssimaDataPulizia(giornoNome, settimane);
 
+
             let prossimaDataStr;
             let classeData = "";
 
@@ -119,6 +123,7 @@ function getPuliziaInfo(via, pulizieGeoJSON) {
 
                 let extraInfo = "";
 
+
                 if (diffGiorni === 1) {
                     extraInfo = "(domani)";
                     classeData = "pulizia-domani";
@@ -127,15 +132,19 @@ function getPuliziaInfo(via, pulizieGeoJSON) {
                     classeData = "pulizia-prossimi";
                 }
 
+
                 prossimaDataStr = `${prossimaData.toLocaleDateString("it-IT", {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                })} <span class="extra-info">${extraInfo}</span>`;
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })} <span class="extra-info">${extraInfo}</span>`;
             } else {
                 prossimaDataStr = "Data non trovata";
             }
+
+
+
 
             return `
             <div class="pulizia-entry ${classeData}">
@@ -153,7 +162,7 @@ function getPuliziaInfo(via, pulizieGeoJSON) {
     }
 }
 
-function filtraPulizieOggi(pulizieGeoJSON) {
+function filtraPulizieOggi() {
     if (!pulizieGeoJSON) return "Dati pulizia non disponibili.";
 
     const oggi = new Date();
