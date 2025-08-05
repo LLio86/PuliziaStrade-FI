@@ -139,7 +139,7 @@ function getPuliziaInfo(via) {
 
             let prossimaDataStr;
             let classeData = "";
-            
+
             if (prossimaData) {
                 const oggi = new Date();
                 const diffTime = prossimaData.setHours(0, 0, 0, 0) - oggi.setHours(0, 0, 0, 0);
@@ -148,13 +148,13 @@ function getPuliziaInfo(via) {
                 let extraInfo = "";
 
 
-if (diffGiorni === 1) {
-    extraInfo = "(domani)";
-    classeData = "pulizia-domani";
-} else if (diffGiorni > 1 && diffGiorni <= 3) {
-    extraInfo = `(tra ${diffGiorni} giorni)`;
-    classeData = "pulizia-prossimi";
-}
+                if (diffGiorni === 1) {
+                    extraInfo = "(domani)";
+                    classeData = "pulizia-domani";
+                } else if (diffGiorni > 1 && diffGiorni <= 3) {
+                    extraInfo = `(tra ${diffGiorni} giorni)`;
+                    classeData = "pulizia-prossimi";
+                }
 
 
                 prossimaDataStr = `${prossimaData.toLocaleDateString("it-IT", {
@@ -166,8 +166,6 @@ if (diffGiorni === 1) {
             } else {
                 prossimaDataStr = "Data non trovata";
             }
-
-
 
 
 
@@ -229,51 +227,55 @@ const autoIcon = L.icon({
 let autoCenter = true;
 
 map.on('movestart', () => {
-  tracking = false;
+    tracking = false;
 });
 
 function aggiornaPosizione(lat, lon) {
-  coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-  if (!marker) {
-    marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️");
-  } else {
-    marker.setLatLng([lat, lon]);
-  }
+    coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    if (!marker) {
+        marker = L.marker([lat, lon], {
+            icon: autoIcon
+        }).addTo(map).bindPopup("🅿️");
+    } else {
+        marker.setLatLng([lat, lon]);
+    }
 
-  if (tracking) {
-     map.panTo([lat, lon]); // Segui solo se tracking attivo
-  }
+    if (tracking) {
+        map.panTo([lat, lon]); // Segui solo se tracking attivo
+    }
 
-  reverseGeocode(lat, lon);
+    reverseGeocode(lat, lon);
 }
 
 // Pulsante "centra e segui"
 const LocateControl = L.Control.extend({
-  onAdd: function (map) {
-    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-    container.title = 'Centra e segui la mia posizione';
-    //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        container.title = 'Centra e segui la mia posizione';
+        //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
 
-    container.onclick = function () {
-  tracking = true;
-  if (marker) {
-    map.setView(marker.getLatLng(), map.getZoom());
-  }
+        container.onclick = function() {
+            tracking = true;
+            if (marker) {
+                map.setView(marker.getLatLng(), map.getZoom());
+            }
 
-  if (trackingTimer) {
-    clearInterval(trackingTimer); // assicurati che non sia duplicato
-  }
-        
-  avviaTrackingContinuo(); // <--- nuovo: riavvia l'aggiornamento continuo
-};
+            if (trackingTimer) {
+                clearInterval(trackingTimer); // assicurati che non sia duplicato
+            }
 
-    L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
+            avviaTrackingContinuo(); // <--- nuovo: riavvia l'aggiornamento continuo
+        };
 
-    return container;
-  }
+        L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
+
+        return container;
+    }
 });
 
-map.addControl(new LocateControl({ position: 'topleft' }));
+map.addControl(new LocateControl({
+    position: 'topleft'
+}));
 
 
 
@@ -285,37 +287,36 @@ function onLocationError(e) {
 let watchId = null;
 
 function avviaTrackingContinuo() {
-  if (navigator.geolocation) {
-    if (watchId) {
-      navigator.geolocation.clearWatch(watchId); // Annulla eventuale watch precedente
-    }
+    if (navigator.geolocation) {
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId); // Annulla eventuale watch precedente
+        }
 
-    watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
-      },
-      (err) => {
-        console.error("Errore geolocalizzazione:", err.message);
-        alert("Impossibile ottenere la posizione.");
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-        timeout: 10000
-      }
-    );
-  } else {
-    alert("Geolocalizzazione non supportata dal browser.");
-  }
+        watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => {
+                console.error("Errore geolocalizzazione:", err.message);
+                alert("Impossibile ottenere la posizione.");
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 1000,
+                timeout: 10000
+            }
+        );
+    } else {
+        alert("Geolocalizzazione non supportata dal browser.");
+    }
 }
 
 
 
 // Watch continuo: aggiorna ogni movimento
 if (navigator.geolocation) {
-  avviaTrackingContinuo();
+    avviaTrackingContinuo();
 } else {
-  alert("Geolocalizzazione non supportata dal browser.");
+    alert("Geolocalizzazione non supportata dal browser.");
 }
 
 
@@ -339,7 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
 function filtraPulizieOggi() {
     if (!pulizieGeoJSON) return "Dati pulizia non disponibili.";
 
@@ -356,8 +356,13 @@ function filtraPulizieOggi() {
 
         const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "";
         const giorniMap = {
-            LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
-            GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+            LU: "Lunedì",
+            MA: "Martedì",
+            ME: "Mercoledì",
+            GI: "Giovedì",
+            VE: "Venerdì",
+            SA: "Sabato",
+            DO: "Domenica"
         };
         const giornoPulizia = giorniMap[giornoCod.toUpperCase()] || "";
 
@@ -406,9 +411,9 @@ function filtraPulizieOggi() {
 
         const conclusa = oraFine < oraAttuale;
 
-        const orarioDisplay = conclusa
-            ? `<s>${oraInizio} - ${oraFine}</s> <span class="conclusa">conclusa</span>`
-            : `<strong>${oraInizio} - ${oraFine}</strong>`;
+        const orarioDisplay = conclusa ?
+            `<s>${oraInizio} - ${oraFine}</s> <span class="conclusa">conclusa</span>` :
+            `<strong>${oraInizio} - ${oraFine}</strong>`;
 
         return `<div class="pulizia-entry">
             <strong>${indirizzo}</strong> (${orarioDisplay})<br>
@@ -416,15 +421,3 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
-
-
-
-
-
-
-
-
-
-
-
-
