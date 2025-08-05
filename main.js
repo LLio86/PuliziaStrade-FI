@@ -34,48 +34,69 @@ function reverseGeocode(lat, lon) {
             const address = data.address;
             const via = address.road || data.display_name;
 
+            // Controllo città
             const comune = address.city || address.town || address.village || "";
             const comuneLower = comune.toLowerCase();
 
             if (!comuneLower.includes("firenze")) {
-                addressEl.textContent = "L'app funziona solo a Firenze.";
-                puliziaEl.innerHTML = "<strong>⚠️ Località non supportata</strong>";
-                return;
+                document.getElementById("address").textContent = "L'app funziona solo a Firenze.";
+                document.getElementById("pulizia").innerHTML = "<strong>⚠️ Località non supportata</strong>";
+                return; // Interrompe la funzione qui
             }
 
-            addressEl.textContent = via || "Indirizzo non trovato";
-            coordsEl.textContent = `Lat: ${lat.toFixed(6)} - Lon: ${lon.toFixed(6)}`;
-
-            puliziaEl.innerHTML = getPuliziaInfo(via, pulizieGeoJSON);
+            addressEl.textContent = via;
+            const info = getPuliziaInfo(via);
+            puliziaEl.innerHTML = info;
         })
-        .catch(() => {
-            addressEl.textContent = "Errore nel recupero dell'indirizzo.";
-            puliziaEl.textContent = "";
+        .catch(error => {
+            console.error("Errore nel reverse geocoding:", error);
+            document.getElementById("address").textContent = "Errore nel recupero dell'indirizzo.";
+            document.getElementById("pulizia").innerHTML = "Impossibile ottenere dati.";
         });
 }
 
 // Funzione per aggiornare posizione sulla mappa e nelle info
 function aggiornaPosizione(lat, lon) {
-    map.setView([lat, lon], 16);
+    coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    if (!marker) {
+        marker = L.marker([lat, lon], {
+            icon: autoIcon
+        }).addTo(map).bindPopup("🅿️");
+    } else {
+        marker.setLatLng([lat, lon]);
+    }
 
-    L.marker([lat, lon]).addTo(map);
+    if (tracking) {
+        map.panTo([lat, lon]); // Segui solo se tracking attivo
+    }
 
     reverseGeocode(lat, lon);
 }
-
 // Tracking continuo
 function avviaTrackingContinuo() {
-    if (trackingTimer) {
-        clearInterval(trackingTimer);
-    }
+    if (navigator.geolocation) {
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId); // Annulla eventuale watch precedente
+        }
 
-    trackingTimer = setInterval(() => {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const { latitude, longitude } = pos.coords;
-            aggiornaPosizione(latitude, longitude);
-        }, onLocationError);
-    }, 20000);
+        watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => {
+                console.error("Errore geolocalizzazione:", err.message);
+                alert("Impossibile ottenere la posizione.");
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 1000,
+                timeout: 10000
+            }
+        );
+    } else {
+        alert("Geolocalizzazione non supportata dal browser.");
+    }
 }
+
 
 // Errore geolocalizzazione
 function onLocationError(error) {
