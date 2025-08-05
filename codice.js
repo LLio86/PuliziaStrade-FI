@@ -245,7 +245,7 @@ function aggiornaPosizione(lat, lon) {
   }
 
   if (tracking) {
-    map.setView([lat, lon],19); // Segui solo se tracking attivo
+     map.setView([lat, lon], map.getZoom()); // Segui solo se tracking attivo
   }
 
   reverseGeocode(lat, lon);
@@ -263,6 +263,11 @@ const LocateControl = L.Control.extend({
   if (marker) {
     map.setView(marker.getLatLng(), map.getZoom());
   }
+
+  if (trackingTimer) {
+    clearInterval(trackingTimer); // assicurati che non sia duplicato
+  }
+        
   avviaTrackingContinuo(); // <--- nuovo: riavvia l'aggiornamento continuo
 };
 
@@ -405,6 +410,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
