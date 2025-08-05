@@ -286,23 +286,33 @@ function onLocationError(e) {
     alert("Errore nel trovare la posizione: " + e.message);
 }
 
+let watchId = null;
+
 function avviaTrackingContinuo() {
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
-    });
-
-    if (!trackingTimer) {
-      trackingTimer = setInterval(() => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
-        });
-      }, 1000);
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId); // Annulla eventuale watch precedente
     }
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        console.error("Errore geolocalizzazione:", err.message);
+        alert("Impossibile ottenere la posizione.");
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 10000
+      }
+    );
   } else {
     alert("Geolocalizzazione non supportata dal browser.");
   }
 }
+
 
 
 // Watch continuo: aggiorna ogni movimento
@@ -410,6 +420,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
