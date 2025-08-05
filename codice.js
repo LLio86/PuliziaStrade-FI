@@ -230,10 +230,6 @@ let autoCenter = true;
 
 map.on('movestart', () => {
   tracking = false;
-  if (trackingTimer) {
-    clearInterval(trackingTimer);
-    trackingTimer = null;
-  }
 });
 
 function aggiornaPosizione(lat, lon) {
@@ -245,7 +241,7 @@ function aggiornaPosizione(lat, lon) {
   }
 
   if (tracking) {
-     map.setView([lat, lon], map.getZoom()); // Segui solo se tracking attivo
+     map.panTo([lat, lon]); // Segui solo se tracking attivo
   }
 
   reverseGeocode(lat, lon);
@@ -420,6 +416,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
