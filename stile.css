@@ -290,7 +290,7 @@ body {
 }
 
 .pulizia-entry .conclusa {
-  color: gray;
+  color: red; --gray;
   font-style: italic;
   font-size: 0.9em;
 }
@@ -308,4 +308,5 @@ body {
   padding: 6px;
   margin-bottom: 8px;
 }
+
 
