@@ -16,6 +16,10 @@
   --colore-evidenza-bg: #ffeeba;
   --colore-evidenza-testo: #856404;
   --colore-corsivo: #666;
+  --colore-domani-bg: #ffdddd;
+  --colore-domani-bordo: red;
+  --colore-prossimi-bg: #fff4e5;
+  --colore-prossimi-bordo: orange;
 }
 
 /* 🎨 Tema scuro */
@@ -36,6 +40,10 @@ body.tema-scuro {
   --colore-evidenza-bg: #4c4c00;
   --colore-evidenza-testo: #ffff99;
   --colore-corsivo: #aaa;
+  --colore-domani-bg: #ffdddd;
+  --colore-domani-bordo: red;
+  --colore-prossimi-bg: #fff4e5;
+  --colore-prossimi-bordo: orange;
 }
 
 /* 🎨 Tema alto contrasto */
@@ -56,6 +64,10 @@ body.tema-alto-contrasto {
   --colore-evidenza-bg: #ffff00;
   --colore-evidenza-testo: #000000;
   --colore-corsivo: #ffffff;
+  --colore-domani-bg: #ffdddd;
+  --colore-domani-bordo: red;
+  --colore-prossimi-bg: #fff4e5;
+  --colore-prossimi-bordo: orange;
 }
 
 /* Reset base */
@@ -309,18 +321,19 @@ body {
 
 
 .pulizia-domani {
-  background-color: #ffdddd;
-  border-left: 4px solid red;
+  background-color: var(--colore-domani-bg);
+  border-left: 4px solid var(--colore-domani-bordo);
   padding: 6px;
   margin-bottom: 8px;
 }
 
 .pulizia-prossimi {
-  background-color: #fff4e5;
-  border-left: 4px solid orange;
+  background-color: var(--colore-prossimi-bg);
+  border-left: 4px solid var(--colore-prossimi-bordo);
   padding: 6px;
   margin-bottom: 8px;
 }
+
 
 
 
