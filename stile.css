@@ -16,7 +16,7 @@
   --colore-evidenza-bg: #ffeeba;
   --colore-evidenza-testo: #856404;
   --colore-corsivo: #666;
-  --colore-domani-bg: #ddffe0;
+  --colore-domani-bg: #ffdddd; /* cambiare questo */
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
@@ -333,6 +333,7 @@ body {
   padding: 6px;
   margin-bottom: 8px;
 }
+
 
 
 
