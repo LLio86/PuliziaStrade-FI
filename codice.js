@@ -404,11 +404,17 @@ function filtraPulizieOggi() {
         const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "-";
         const tratto = estraiValoreDescrizione(desc, "tratto_strada") || "";
 
-        const conclusa = oraFine < oraAttuale;
+        let stato = "";
+        if (oraFine < oraAttuale) {
+            stato = `<span class="conclusa">conclusa</span>`;
+        } else if (oraInizio <= oraAttuale && oraAttuale <= oraFine) {
+            stato = `<span class="incorso">in corso</span>`;
+        } else {
+            stato = `<span class="noniniziata">non ancora iniziata</span>`;
+        }
 
-        const orarioDisplay = conclusa
-            ? `<s>${oraInizio} - ${oraFine}</s> <span class="conclusa">conclusa</span>`
-            : `<strong>${oraInizio} - ${oraFine}</strong>`;
+        const orarioDisplay = `<strong>${oraInizio} - ${oraFine}</strong> ${stato}`;
+
 
         return `<div class="pulizia-entry">
             <strong>${indirizzo}</strong> (${orarioDisplay})<br>
@@ -416,14 +422,4 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
-
-
-
-
-
-
-
-
-
-
 
