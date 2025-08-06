@@ -290,10 +290,23 @@ body {
 }
 
 .pulizia-entry .conclusa {
-  color: red; --gray;
+  color: red; 
   font-style: italic;
   font-size: 0.9em;
 }
+
+.pulizia-entry .incorso {
+  color: green;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.pulizia-entry .noniniziata {
+  color: orange;
+  font-style: italic;
+  font-size: 0.9em;
+}
+
 
 .pulizia-domani {
   background-color: #ffdddd;
@@ -308,5 +321,6 @@ body {
   padding: 6px;
   margin-bottom: 8px;
 }
+
 
 
