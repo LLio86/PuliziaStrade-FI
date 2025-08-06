@@ -290,10 +290,14 @@ body {
 }
 
 .pulizia-entry .conclusa {
-  color: red; 
+  background-color: #e2e3e5; /* grigio chiaro di sfondo */
+  color: red;            /* grigio scuro ma non troppo */
+  padding: 2px 6px;
+  border-radius: 4px;
   font-style: italic;
   font-size: 0.9em;
 }
+
 
 .pulizia-entry .incorso {
   color: green;
@@ -321,6 +325,7 @@ body {
   padding: 6px;
   margin-bottom: 8px;
 }
+
 
 
 
