@@ -20,6 +20,10 @@
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
+  --colore-btn-bg: #007bff;
+  --colore-btn-bg-hover: #0056b3;
+  --colore-btn-bg-active: #003f7f;
+  --colore-btn-testo: #ffffff;
 }
 
 /* 🎨 Tema scuro */
@@ -44,6 +48,10 @@ body.tema-scuro {
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
+  --colore-btn-bg: #2196f3;
+  --colore-btn-bg-hover: #1976d2;
+  --colore-btn-bg-active: #0d47a1;
+  --colore-btn-testo: #ffffff;
 }
 
 /* 🎨 Tema alto contrasto */
@@ -68,6 +76,10 @@ body.tema-alto-contrasto {
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
+  --colore-btn-bg: #ffff00;
+  --colore-btn-bg-hover: #ffcc00;
+  --colore-btn-bg-active: #ffaa00;
+  --colore-btn-testo: #000000;
 }
 
 /* Reset base */
@@ -355,6 +367,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
