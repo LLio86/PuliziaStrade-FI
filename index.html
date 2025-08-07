@@ -67,17 +67,24 @@
 <!-- ☰ Sezione Altro -->
 <div class="sezione" id="sezione-altro" style="display:none;">
   <h3>☰ Altro</h3>
-  
-  <ul style="list-style: none; padding: 0;">
-    <li style="margin-bottom: 10px;">
-      <button onclick="condividi()" class="btn-condividi">📤 Condividi questa app</button>
-    </li>
-    <li>
-      <p>ℹ️ Versione app: <strong>1.0</strong></p>
-      <p>📞 Contatti: <a href="mailto:info@puliziastrade.it">info@puliziastrade.it</a></p>
-    </li>
-  </ul>
+
+  <h4>📤 Condividi questa app</h4>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+
+    <a href="https://wa.me/?text=Scopri%20quando%20puliranno%20la%20tua%20via%20con%20questa%20app%20%F0%9F%A7%B9%0Ahttps%3A%2F%2Fpuliziastrade.example.com" target="_blank" class="btn-condividi">
+      💬 Condividi su WhatsApp
+    </a>
+
+    <a href="mailto:?subject=Pulizia%20Strade%20Firenze&body=Scopri%20quando%20puliranno%20la%20tua%20via%20con%20questa%20app:%20https%3A%2F%2Fpuliziastrade.example.com" class="btn-condividi">
+      ✉️ Condividi via Email
+    </a>
+
+    <button onclick="copiaLink()" class="btn-condividi">
+      🔗 Copia link
+    </button>
+  </div>
 </div>
+
 
 
 
@@ -127,3 +134,4 @@
 </body>
 
 </html>
+
