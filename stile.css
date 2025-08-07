@@ -336,8 +336,8 @@ body {
 
 .btn-condividi {
   padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--colore-btn-bg, #007bff);
+  color: var(--colore-btn-testo, white);
   border: none;
   border-radius: 8px;
   text-decoration: none;
@@ -347,17 +347,14 @@ body {
   cursor: pointer;
   transition: background-color 0.2s;
 }
+
 .btn-condividi:hover {
-  background-color: #0056b3;
+  background-color: var(--colore-btn-bg-hover, #0056b3);
 }
+
 .btn-condividi:active {
-  background-color: #003f7f;
+  background-color: var(--colore-btn-bg-active, #003f7f);
 }
-
-
-
-
-
 
 
 
