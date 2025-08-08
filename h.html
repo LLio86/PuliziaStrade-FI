@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo PWA Install</title>
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#28a745">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding-bottom: 90px; /* spazio per il banner */
+    }
+
+    header {
+      background: #28a745;
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+
+    main {
+      padding: 16px;
+    }
+
+    /* Stile per il componente pwa-install */
+    pwa-install {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+      --pwa-install-button-color: white;
+      --pwa-install-button-background: #28a745;
+      --pwa-install-button-border-radius: 6px;
+      --pwa-install-button-font-size: 16px;
+      --pwa-install-button-padding: 10px 20px;
+      background: #fff;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>La Mia PWA</h1>
+  </header>
+
+  <main>
+    <p>Questa è una demo di install banner PWA in stile Foubouffe/Fodmapedia.</p>
+    <p>Funziona su Android (Chrome) con prompt diretto e su iOS (Safari) con istruzioni manuali.</p>
+  </main>
+
+  <!-- Libreria PWA Install -->
+  <script type="module" src="https://unpkg.com/pwa-install"></script>
+
+  <!-- Componente -->
+  <pwa-install
+    name="La Mia App"
+    description="Accedi velocemente e ricevi notifiche"
+    install-description="📲 Installa l'app"
+    iosprompttext="Su iOS: Condividi → Aggiungi alla Home"
+    use-local-storage="true"
+    manifest-url="manifest.json"
+  ></pwa-install>
+
+</body>
+</html>
