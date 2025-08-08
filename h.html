@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Install Demo</title>
+  <meta name="theme-color" content="#0066ff" />
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Stili base -->
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding-bottom: 80px; /* spazio per il banner */
+    }
+
+    pwa-install {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+      --install-button-background: #0066ff;
+      --install-button-color: white;
+      --install-button-border-radius: 6px;
+      --install-button-padding: 10px 20px;
+      --install-button-font-size: 16px;
+      background: white;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>La mia Web App</h1>
+  <p>Questa è una PWA con un banner installabile!</p>
+
+  <!-- Libreria pwainstall -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script>
+
+  <!-- Banner install -->
+  <pwa-install
+    installbuttontext="📲 Installa l'app"
+    iosprompttext="Su iOS: Condividi → Aggiungi alla Home"
+    descriptionheader="Installa la nostra app"
+    description="Accedi più velocemente e ricevi notifiche!"
+  ></pwa-install>
+</body>
+</html>
