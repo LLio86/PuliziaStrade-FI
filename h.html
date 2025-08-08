@@ -1,12 +1,22 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Pulizia strade - Firenze</title>
 </head>
 <body>
   <pwa-install></pwa-install>
 
   <script src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall/dist/pwa-install.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('Service Worker registrato'))
+        .catch(err => console.error('Errore registrazione SW:', err));
+    }
+  </script>
 </body>
 </html>
