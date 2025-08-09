@@ -61,3 +61,34 @@ temaAutoCheckbox.addEventListener('change', function () {
   }
   applicaTema(temaDaApplicare);
 });
+
+
+
+// 📢 Notifiche
+const notificheCheckbox = document.getElementById("notifiche-checkbox");
+if (localStorage.getItem("notifiche") === "true") {
+    notificheCheckbox.checked = true;
+}
+notificheCheckbox.addEventListener("change", function () {
+    localStorage.setItem("notifiche", this.checked);
+    if (this.checked) {
+        Notification.requestPermission().then((perm) => {
+            if (perm !== "granted") {
+                alert("Le notifiche non sono state autorizzate");
+                notificheCheckbox.checked = false;
+                localStorage.setItem("notifiche", false);
+            }
+        });
+    }
+});
+
+// 🔠 Dimensione testo
+const dimensioneTestoRange = document.getElementById("dimensione-testo");
+if (localStorage.getItem("dimensioneTesto")) {
+    dimensioneTestoRange.value = localStorage.getItem("dimensioneTesto");
+    document.body.style.fontSize = dimensioneTestoRange.value + "rem";
+}
+dimensioneTestoRange.addEventListener("input", function () {
+    document.body.style.fontSize = this.value + "rem";
+    localStorage.setItem("dimensioneTesto", this.value);
+});
