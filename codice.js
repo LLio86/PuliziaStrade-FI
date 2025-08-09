@@ -228,36 +228,33 @@ const autoIcon = L.icon({
 
 let autoCenter = true;
 
+
+let isAutoPan = false;
+
 map.on('movestart', () => {
-  tracking = false;
+  if (!isAutoPan) {
+    tracking = false;
+    console.log("Tracking disattivato per spostamento manuale");
+  }
 });
 
-
 function aggiornaPosizione(lat, lon) {
-  console.log("aggiornaPosizione chiamata con:", lat, lon);
-
   coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-
+  
   if (!marker) {
-    console.log("Marker non esiste, lo creo");
     marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️");
   } else {
-    console.log("Marker esiste, aggiorno posizione");
     marker.setLatLng([lat, lon]);
   }
 
   if (tracking) {
-    console.log("Tracking attivo, centro la mappa");
+    isAutoPan = true;
     map.panTo([lat, lon]);
-  } else {
-    console.log("Tracking non attivo, non centro la mappa");
+    setTimeout(() => { isAutoPan = false; }, 200); // dopo 0.2s torno a false
   }
 
-  console.log("Chiamo reverseGeocode");
   reverseGeocode(lat, lon);
 }
-
-
 
 
 
@@ -442,6 +439,7 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
 
