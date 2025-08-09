@@ -48,8 +48,8 @@ body.tema-scuro {
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
-  --colore-btn-bg: #2196f3;
-  --colore-btn-bg-hover: #1976d2;
+  --colore-btn-bg: #2e1253;
+  --colore-btn-bg-hover: #2e1253;
   --colore-btn-bg-active: #0d47a1;
   --colore-btn-testo: #ffffff;
 }
@@ -369,6 +369,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
