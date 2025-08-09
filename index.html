@@ -109,10 +109,10 @@
     <a href="mailto:?subject=Pulizia%20Strade%20Firenze&body=Scopri%20quando%20puliranno%20la%20tua%20via%20con%20questa%20app:%20https%3A%2F%2Fllio86.github.io%2FPuliziaStrade-FI%2F" class="btn-condividi">
       ✉️ Condividi via Email
     </a>
+	<button class="btn-condividi" onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('Link copiato negli appunti!')).catch(() => alert('Impossibile copiare il link.'));">
+  	 🔗 Copia link
+	</button>
 
-    <button onclick="copiaLink()" class="btn-condividi">
-      🔗 Copia link
-    </button>
   </div>
 </div>
 
@@ -148,6 +148,7 @@
 
 </body>
 </html>
+
 
 
 
