@@ -298,14 +298,19 @@ function onLocationError(e) {
 
 let watchId = null;
 
+
 function avviaTrackingContinuo() {
+  console.log("avviaTrackingContinuo() chiamata");
+
   if (navigator.geolocation) {
     if (watchId) {
-      navigator.geolocation.clearWatch(watchId); // Annulla eventuale watch precedente
+      console.log("Clear watch precedente");
+      navigator.geolocation.clearWatch(watchId);
     }
 
     watchId = navigator.geolocation.watchPosition(
       (pos) => {
+        console.log("Posizione ricevuta dal pulsante:", pos.coords.latitude, pos.coords.longitude);
         aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
@@ -322,6 +327,7 @@ function avviaTrackingContinuo() {
     alert("Geolocalizzazione non supportata dal browser.");
   }
 }
+
 
 
 
@@ -436,5 +442,6 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
 
