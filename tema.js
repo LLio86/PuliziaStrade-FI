@@ -64,23 +64,8 @@ temaAutoCheckbox.addEventListener('change', function () {
 
 
 
-// 📢 Notifiche
-const notificheCheckbox = document.getElementById("notifiche-checkbox");
-if (localStorage.getItem("notifiche") === "true") {
-    notificheCheckbox.checked = true;
-}
-notificheCheckbox.addEventListener("change", function () {
-    localStorage.setItem("notifiche", this.checked);
-    if (this.checked) {
-        Notification.requestPermission().then((perm) => {
-            if (perm !== "granted") {
-                alert("Le notifiche non sono state autorizzate");
-                notificheCheckbox.checked = false;
-                localStorage.setItem("notifiche", false);
-            }
-        });
-    }
-});
+
+
 
 // 🔠 Dimensione testo
 const dimensioneTestoRange = document.getElementById("dimensione-testo");
@@ -91,4 +76,104 @@ if (localStorage.getItem("dimensioneTesto")) {
 dimensioneTestoRange.addEventListener("input", function () {
     document.body.style.fontSize = this.value + "rem";
     localStorage.setItem("dimensioneTesto", this.value);
+});
+
+
+// 📢 Notifiche
+
+const notificheCheckbox = document.getElementById("notifiche-checkbox");
+
+// Al caricamento imposta lo stato checkbox da localStorage
+if (localStorage.getItem("notifiche") === "true") {
+    notificheCheckbox.checked = true;
+}
+
+// Funzione helper per disiscrivere la push subscription
+function unsubscribePush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    return navigator.serviceWorker.ready.then(registration => {
+      return registration.pushManager.getSubscription().then(subscription => {
+        if (subscription) {
+          return subscription.unsubscribe();
+        }
+      });
+    });
+  }
+  return Promise.resolve();
+}
+
+// Funzione helper per sottoscrivere le notifiche push
+function subscribePush() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    return navigator.serviceWorker.ready.then(registration => {
+      // Sostituisci con la tua chiave pubblica VAPID in base64 URL-safe
+      const vapidPublicKey = '<YOUR_PUBLIC_VAPID_KEY>';
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+      return registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey
+      });
+    });
+  }
+  return Promise.reject('Push non supportate');
+}
+
+// Convertitore base64 URL-safe per VAPID
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+notificheCheckbox.addEventListener("change", function () {
+  if (this.checked) {
+    // Richiedi permesso notifiche
+    if (Notification.permission === 'granted') {
+      // Se già autorizzato, sottoscrivi push
+      subscribePush()
+        .then(() => {
+          localStorage.setItem("notifiche", "true");
+        })
+        .catch(err => {
+          alert("Errore sottoscrizione notifiche: " + err);
+          notificheCheckbox.checked = false;
+          localStorage.setItem("notifiche", "false");
+        });
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then(perm => {
+        if (perm === "granted") {
+          subscribePush()
+            .then(() => {
+              localStorage.setItem("notifiche", "true");
+            })
+            .catch(err => {
+              alert("Errore sottoscrizione notifiche: " + err);
+              notificheCheckbox.checked = false;
+              localStorage.setItem("notifiche", "false");
+            });
+        } else {
+          alert("Le notifiche non sono state autorizzate");
+          notificheCheckbox.checked = false;
+          localStorage.setItem("notifiche", "false");
+        }
+      });
+    } else {
+      alert("Hai negato le notifiche. Per riabilitarle, modifica le impostazioni del browser.");
+      notificheCheckbox.checked = false;
+      localStorage.setItem("notifiche", "false");
+    }
+  } else {
+    // Disattiva notifiche: cancella subscription e aggiorna localStorage
+    unsubscribePush().then(() => {
+      localStorage.setItem("notifiche", "false");
+    }).catch(err => {
+      console.error("Errore disiscrizione notifiche:", err);
+    });
+  }
 });
