@@ -51,22 +51,22 @@ function showIosInstallMessage() {
         📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>"Aggiungi a Home"</b>.
       `;
       msg.style.cssText = `
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        background: #fff0e1;
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 14px;
-        text-align: center;
-        z-index: 9999;
-        box-shadow: 0 0 8px rgba(0,0,0,0.2);
-        font-family: sans-serif;
-        cursor: pointer;
-        user-select: none;
-        display: none; /* Inizialmente nascosto */
-      `;
+  position: fixed;
+  top: 60px;        /* posizione sotto la header */
+  left: 10px;
+  right: 10px;
+  background: #fff0e1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 9999;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  font-family: sans-serif;
+  cursor: pointer;
+  user-select: none;
+  display: none;
+`;
 
       // Aggiungi evento click per nascondere il messaggio
       msg.addEventListener('click', () => {
@@ -98,5 +98,6 @@ function showIosInstallMessage() {
 }
 
 window.addEventListener('load', showIosInstallMessage);
+
 
 
