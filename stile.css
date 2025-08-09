@@ -212,12 +212,14 @@ body {
 
 /* Elementi barra */
 .bar-item {
-  flex: 1;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--colore-bar-item);
-  cursor: pointer;
-  padding: 0.5em 0;
+    flex: 1;                /* stessa larghezza per tutti */
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;       /* peso fisso */
+    color: var(--colore-bar-item);
+    cursor: pointer;
+    padding: 0.5em 0;
+    min-width: 0;           /* evita overflow nei flex container */
 }
 
 .bar-item span {
@@ -225,8 +227,8 @@ body {
 }
 
 .bar-item.active {
-  font-weight: bold;
-  color: var(--colore-bar-item-attivo);
+    font-weight: 500;       /* evita il bold */
+    color: var(--colore-bar-item-attivo);
 }
 
 .leaflet-control-custom {
@@ -367,6 +369,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
