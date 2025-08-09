@@ -41,29 +41,62 @@ function showIosInstallMessage() {
   const isInStandalone = window.navigator.standalone === true;
 
   if (isIos && !isInStandalone) {
-    const msg = document.createElement('div');
+    let msg = document.getElementById('ios-install-msg');
 
+    // Se il messaggio non esiste, crealo
+    if (!msg) {
+      msg = document.createElement('div');
+      msg.id = 'ios-install-msg';
       msg.innerHTML = `
-  📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>"Aggiungi a Home"</b>.
-`     
-      ;
-    msg.style.cssText = `
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      background: #fff0e1;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: center;
-      z-index: 9999;
-      box-shadow: 0 0 8px rgba(0,0,0,0.2);
-      font-family: sans-serif;
-    `;
-    document.body.appendChild(msg);
+        📱 Per installare l'app: tocca il pulsante <b>Condividi</b> in Safari e scegli <b>"Aggiungi a Home"</b>.
+      `;
+      msg.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: #fff0e1;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        text-align: center;
+        z-index: 9999;
+        box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        font-family: sans-serif;
+        cursor: pointer;
+        user-select: none;
+        display: none; /* Inizialmente nascosto */
+      `;
+
+      // Aggiungi evento click per nascondere il messaggio
+      msg.addEventListener('click', () => {
+        msg.style.display = 'none';
+      });
+
+      document.body.appendChild(msg);
+    }
+
+    // Funzione per mostrare il messaggio
+    function mostraMessaggio() {
+      msg.style.display = 'block';
+    }
+
+    // Mostra il messaggio dopo 5 secondi
+    setTimeout(() => {
+      mostraMessaggio();
+
+      // Imposta un intervallo per farlo ricomparire ciclicamente ogni 20 secondi,
+      // solo se è nascosto (es. se l’utente ha cliccato)
+      setInterval(() => {
+        if (msg.style.display === 'none') {
+          mostraMessaggio();
+        }
+      }, 20000);
+
+    }, 5000);
   }
 }
 
-// Chiama la funzione al caricamento della pagina
 window.addEventListener('load', showIosInstallMessage);
+
+
