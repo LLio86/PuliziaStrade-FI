@@ -20,8 +20,8 @@
   --colore-domani-bordo: red;
   --colore-prossimi-bg: #fff4e5;
   --colore-prossimi-bordo: orange;
-  --colore-btn-bg: #007bff;
-  --colore-btn-bg-hover: #0056b3;
+  --colore-btn-bg: #5a328c;
+  --colore-btn-bg-hover: #5a328c;
   --colore-btn-bg-active: #003f7f;
   --colore-btn-testo: #ffffff;
 }
@@ -369,6 +369,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
