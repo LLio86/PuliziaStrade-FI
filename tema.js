@@ -80,7 +80,6 @@ dimensioneTestoRange.addEventListener("input", function () {
 
 
 // 📢 Notifiche
-
 const notificheCheckbox = document.getElementById("notifiche-checkbox");
 
 // Al caricamento imposta lo stato checkbox da localStorage
@@ -133,9 +132,9 @@ function urlBase64ToUint8Array(base64String) {
 
 notificheCheckbox.addEventListener("change", function () {
   if (this.checked) {
-    // Richiedi permesso notifiche
+    // Controlla stato permessi notifiche
     if (Notification.permission === 'granted') {
-      // Se già autorizzato, sottoscrivi push
+      // Già autorizzato: sottoscrivi push
       subscribePush()
         .then(() => {
           localStorage.setItem("notifiche", "true");
@@ -146,6 +145,7 @@ notificheCheckbox.addEventListener("change", function () {
           localStorage.setItem("notifiche", "false");
         });
     } else if (Notification.permission === 'default') {
+      // Richiedi permesso notifiche
       Notification.requestPermission().then(perm => {
         if (perm === "granted") {
           subscribePush()
@@ -164,7 +164,11 @@ notificheCheckbox.addEventListener("change", function () {
         }
       });
     } else {
-      alert("Hai negato le notifiche. Per riabilitarle, modifica le impostazioni del browser.");
+      // Permesso negato
+      alert(
+        "Hai negato le notifiche nelle impostazioni del browser.\n" +
+        "Per riabilitarle, vai nelle impostazioni del browser e consenti le notifiche per questo sito."
+      );
       notificheCheckbox.checked = false;
       localStorage.setItem("notifiche", "false");
     }
