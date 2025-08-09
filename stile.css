@@ -12,7 +12,7 @@
   --colore-bottom-bar: #ffffff;
   --colore-bottom-bar-bordo: #ddd;
   --colore-bar-item: #5a328c;
-  --colore-bar-item-attivo: #3a1e6c;
+  --colore-bar-item-attivo: #000000;
   --colore-evidenza-bg: #ffeeba;
   --colore-evidenza-testo: #856404;
   --colore-corsivo: #666;
@@ -369,6 +369,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
