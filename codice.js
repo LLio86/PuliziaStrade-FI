@@ -232,20 +232,34 @@ map.on('movestart', () => {
   tracking = false;
 });
 
+
 function aggiornaPosizione(lat, lon) {
+  console.log("aggiornaPosizione chiamata con:", lat, lon);
+
   coordsEl.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
   if (!marker) {
+    console.log("Marker non esiste, lo creo");
     marker = L.marker([lat, lon], { icon: autoIcon }).addTo(map).bindPopup("🅿️");
   } else {
+    console.log("Marker esiste, aggiorno posizione");
     marker.setLatLng([lat, lon]);
   }
 
   if (tracking) {
-     map.panTo([lat, lon]); // Segui solo se tracking attivo
+    console.log("Tracking attivo, centro la mappa");
+    map.panTo([lat, lon]);
+  } else {
+    console.log("Tracking non attivo, non centro la mappa");
   }
 
+  console.log("Chiamo reverseGeocode");
   reverseGeocode(lat, lon);
 }
+
+
+
+
 
 // Pulsante "centra e segui"
 const LocateControl = L.Control.extend({
@@ -422,4 +436,5 @@ function filtraPulizieOggi() {
         </div>`;
     }).join("");
 }
+
 
