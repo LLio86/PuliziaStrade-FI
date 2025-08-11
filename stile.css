@@ -393,6 +393,19 @@ body {
 }
 
 
+#ad-banner {
+  position: fixed;
+  bottom: calc(60px + env(safe-area-inset-bottom)); /* stessa altezza della bottom-bar */
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #f0f0f0;
+  text-align: center;
+  line-height: 60px;
+  z-index: 999; /* leggermente sotto la bottom bar */
+  border-top: 1px solid #ccc;
+}
+
 
 
 
