@@ -443,3 +443,28 @@ function filtraPulizieOggi() {
 
 
 
+const listaPulizie = document.getElementById('lista-pulizie-oggi');
+const mappaPuliziaOggi = document.getElementById('mappa-pulizia-oggi');
+const btnMapView = document.getElementById('btn-map-view');
+const btnListView = document.getElementById('btn-list-view');
+
+btnMapView.addEventListener('click', () => {
+  listaPulizie.style.display = 'none';
+  mappaPuliziaOggi.style.display = 'block';
+  btnMapView.style.display = 'none';
+  btnListView.style.display = 'block';
+
+  // Qui inizializza o aggiorna la mappa
+  // es: crea la mappa Leaflet se non ancora creata, oppure aggiorna i marker
+});
+
+btnListView.addEventListener('click', () => {
+  mappaPuliziaOggi.style.display = 'none';
+  listaPulizie.style.display = 'block';
+  btnListView.style.display = 'none';
+  btnMapView.style.display = 'block';
+});
+
+
+
+
