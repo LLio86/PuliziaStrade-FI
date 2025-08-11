@@ -316,19 +316,19 @@ body {
 }
 
 .pulizia-entry .conclusa {
-  color: red; /* <-- rimuovi "--gray" */
+  color: green; 
   font-style: italic;
   font-size: 0.9em;
 }
 
 .pulizia-entry .incorso {
-  color: green;
+  color: orange;
   font-weight: bold;
   font-size: 0.9em;
 }
 
 .pulizia-entry .noniniziata {
-  color: orange;
+  color: red;
   font-style: italic;
   font-size: 0.9em;
 }
@@ -369,6 +369,7 @@ body {
 .btn-condividi:active {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
+
 
 
 
