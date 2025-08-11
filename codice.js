@@ -442,27 +442,121 @@ function filtraPulizieOggi() {
 
 
 
+// Assumiamo che 'pulizieGeoJSON' sia disponibile nel tuo script, con i dati geo delle vie
 
-const listaPulizie = document.getElementById('lista-pulizie-oggi');
-const mappaPuliziaOggi = document.getElementById('mappa-pulizia-oggi');
-const btnMapView = document.getElementById('btn-map-view');
-const btnListView = document.getElementById('btn-list-view');
+// --- 1. Creazione mappa Leaflet ---
+const mappaPulizia = L.map('mappa-pulizia-oggi').setView([43.77, 11.25], 13);
 
-btnMapView.addEventListener('click', () => {
-  listaPulizie.style.display = 'none';
-  mappaPuliziaOggi.style.display = 'block';
-  btnMapView.style.display = 'none';
-  btnListView.style.display = 'block';
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(mappaPulizia);
 
-  // Qui inizializza o aggiorna la mappa
-  // es: crea la mappa Leaflet se non ancora creata, oppure aggiorna i marker
+// Layer group per marker, così possiamo pulirli ogni volta
+const markerGroup = L.layerGroup().addTo(mappaPulizia);
+
+
+// --- 2. Funzione che filtra le pulizie di oggi ---
+// La tua funzione modificata per restituire solo array di features
+function getViePuliziaOggi() {
+  if (!pulizieGeoJSON) return [];
+
+  const oggi = new Date();
+  const giorniSettimanaIT = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+  const giornoNome = giorniSettimanaIT[oggi.getDay()];
+  const settimanaCorrente = Math.floor((oggi.getDate() - 1) / 7) + 1;
+  const settimanaStr = settimanaCorrente + "ª";
+
+  const features = pulizieGeoJSON.features;
+
+  return features.filter(f => {
+    const desc = f.properties.description || "";
+
+    const giornoCod = estraiValoreDescrizione(desc, "giorno_settimana") || "";
+    const giorniMap = {
+      LU: "Lunedì", MA: "Martedì", ME: "Mercoledì",
+      GI: "Giovedì", VE: "Venerdì", SA: "Sabato", DO: "Domenica"
+    };
+    const giornoPulizia = giorniMap[giornoCod.toUpperCase()] || "";
+
+    if (giornoPulizia !== giornoNome) return false;
+
+    const settimane = [];
+    if (estraiValoreDescrizione(desc, "prima_settimana") === "1") settimane.push("1ª");
+    if (estraiValoreDescrizione(desc, "seconda_settimana") === "1") settimane.push("2ª");
+    if (estraiValoreDescrizione(desc, "terza_settimana") === "1") settimane.push("3ª");
+    if (estraiValoreDescrizione(desc, "quarta_settimana") === "1") settimane.push("4ª");
+    if (estraiValoreDescrizione(desc, "quinta_settimana") === "1") settimane.push("5ª");
+
+    return settimane.includes(settimanaStr);
+  });
+}
+
+
+// --- 3. Funzione per mostrare marker sulla mappa ---
+function mostraVieMappa(vie) {
+  markerGroup.clearLayers(); // pulisce marker vecchi
+
+  const oraAttuale = new Date();
+  const oraStr = oraAttuale.getHours().toString().padStart(2, '0') + ':' + oraAttuale.getMinutes().toString().padStart(2, '0');
+
+  vie.forEach(f => {
+    const desc = f.properties.description || "";
+
+    const indirizzo = estraiValoreDescrizione(desc, "indirizzo") || "Indirizzo non specificato";
+    const oraInizio = estraiValoreDescrizione(desc, "ora_inizio") || "00:00";
+    const oraFine = estraiValoreDescrizione(desc, "ora_fine") || "00:00";
+
+    // Determino colore in base allo stato
+    let colore = 'gray'; // default
+
+    if (oraFine < oraStr) {
+      colore = 'green'; // conclusa
+    } else if (oraInizio <= oraStr && oraStr <= oraFine) {
+      colore = 'orange'; // in corso
+    } else {
+      colore = 'red'; // non iniziata
+    }
+
+    // Se la feature ha geometria punto o linea (se hai linee puoi cambiare marker con polyline)
+    if (f.geometry.type === 'Point') {
+      const [lng, lat] = f.geometry.coordinates;
+      const marker = L.circleMarker([lat, lng], {
+        color: colore,
+        radius: 8,
+        fillOpacity: 0.8
+      }).addTo(markerGroup);
+      marker.bindPopup(`<strong>${indirizzo}</strong><br>${oraInizio} - ${oraFine}`);
+    }
+    else if (f.geometry.type === 'LineString') {
+      const latlngs = f.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+      const polyline = L.polyline(latlngs, {color: colore}).addTo(markerGroup);
+      polyline.bindPopup(`<strong>${indirizzo}</strong><br>${oraInizio} - ${oraFine}`);
+    }
+  });
+
+  // Zoom sulla zona con i marker
+  if (markerGroup.getLayers().length > 0) {
+    mappaPulizia.fitBounds(markerGroup.getBounds().pad(0.5));
+  }
+}
+
+
+// --- 4. Gestione pulsanti vista mappa/lista ---
+document.getElementById('btn-map-view').addEventListener('click', () => {
+  document.getElementById('lista-pulizie-oggi').style.display = 'none';
+  document.getElementById('mappa-pulizia-oggi').style.display = 'block';
+  document.getElementById('btn-map-view').style.display = 'none';
+  document.getElementById('btn-list-view').style.display = 'inline-block';
+
+  const vieOggi = getViePuliziaOggi();
+  mostraVieMappa(vieOggi);
 });
 
-btnListView.addEventListener('click', () => {
-  mappaPuliziaOggi.style.display = 'none';
-  listaPulizie.style.display = 'block';
-  btnListView.style.display = 'none';
-  btnMapView.style.display = 'block';
+document.getElementById('btn-list-view').addEventListener('click', () => {
+  document.getElementById('lista-pulizie-oggi').style.display = 'block';
+  document.getElementById('mappa-pulizia-oggi').style.display = 'none';
+  document.getElementById('btn-map-view').style.display = 'inline-block';
+  document.getElementById('btn-list-view').style.display = 'none';
 });
 
 
