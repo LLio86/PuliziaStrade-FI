@@ -387,4 +387,9 @@ body {
 }
 
 
+#mappa-pulizia-oggi {
+  height: 100vh; /* o 100% se i genitori hanno altezza */
+  width: 100%;
+}
+
 
