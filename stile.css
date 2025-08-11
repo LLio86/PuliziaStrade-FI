@@ -370,6 +370,11 @@ body {
   background-color: var(--colore-btn-bg-active, #003f7f);
 }
 
+#sezione-pulizia {
+  position: relative;
+}
+
+
 .bottom-center-button,
 .map-button {
   position: absolute;
@@ -380,6 +385,7 @@ body {
   font-size: 16px;
   cursor: pointer;
 }
+
 
 
 
