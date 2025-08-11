@@ -445,14 +445,29 @@ function filtraPulizieOggi() {
 // Assumiamo che 'pulizieGeoJSON' sia disponibile nel tuo script, con i dati geo delle vie
 
 // --- 1. Creazione mappa Leaflet ---
-const mappaPulizia = L.map('mappa-pulizia-oggi').setView([43.77, 11.25], 13);
+let mappaPulizia = null;
+const markerGroup = L.layerGroup();
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(mappaPulizia);
+document.getElementById('btn-map-view').addEventListener('click', () => {
+  document.getElementById('lista-pulizie-oggi').style.display = 'none';
+  document.getElementById('mappa-pulizia-oggi').style.display = 'block';
+  document.getElementById('btn-map-view').style.display = 'none';
+  document.getElementById('btn-list-view').style.display = 'inline-block';
 
-// Layer group per marker, così possiamo pulirli ogni volta
-const markerGroup = L.layerGroup().addTo(mappaPulizia);
+  if (!mappaPulizia) {
+    mappaPulizia = L.map('mappa-pulizia-oggi').setView([43.77, 11.25], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mappaPulizia);
+
+    markerGroup.addTo(mappaPulizia);
+  }
+
+  const vieOggi = getViePuliziaOggi();
+  mostraVieMappa(vieOggi);
+});
+
 
 
 // --- 2. Funzione che filtra le pulizie di oggi ---
@@ -558,6 +573,7 @@ document.getElementById('btn-list-view').addEventListener('click', () => {
   document.getElementById('btn-map-view').style.display = 'inline-block';
   document.getElementById('btn-list-view').style.display = 'none';
 });
+
 
 
 
