@@ -1,16 +1,16 @@
 const cacheName = 'todo-cache-v1';
 const filesToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/sedan.png',
-  '/pulizia_firenze.geojson',
-  '/icona.png',
-  '/pulsante.js',
-  '/stile.css',
-  '/codice.js',
-  '/preferiti.js',
-  '/tema.js'
+  '/PuliziaStrade-FI/',
+  '/PuliziaStrade-FI/index.html',
+  '/PuliziaStrade-FI/manifest.json',
+  '/PuliziaStrade-FI/sedan.png',
+  '/PuliziaStrade-FI/pulizia_firenze.geojson',
+  '/PuliziaStrade-FI/icona.png',
+  '/PuliziaStrade-FI/pulsante.js',
+  '/PuliziaStrade-FI/stile.css',
+  '/PuliziaStrade-FI/codice.js',
+  '/PuliziaStrade-FI/preferiti.js',
+  '/PuliziaStrade-FI/tema.js'
   
 ];
 
