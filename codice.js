@@ -578,3 +578,10 @@ document.getElementById('btn-list-view').addEventListener('click', () => {
 
 
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log('Service Worker registrato'))
+      .catch(err => console.error('Errore registrazione SW:', err));
+  });
+}
