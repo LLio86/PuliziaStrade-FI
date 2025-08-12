@@ -2,7 +2,6 @@ const cacheName = 'todo-cache-v1';
 const filesToCache = [
   '/',
   '/index.html',
-  '/style.css',
   '/app.js',
   '/manifest.json',
   '/sedan.png',
