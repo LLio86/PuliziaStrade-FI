@@ -2,7 +2,6 @@ const cacheName = 'todo-cache-v1';
 const filesToCache = [
   '/',
   '/index.html',
-  '/app.js',
   '/manifest.json',
   '/sedan.png',
   '/pulizia_firenze.geojson',
@@ -10,7 +9,6 @@ const filesToCache = [
   '/pulsante.js',
   '/stile.css',
   '/codice.js',
-  '/pulizie_prossime.js',
   '/preferiti.js',
   '/tema.js'
   
