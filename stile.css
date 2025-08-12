@@ -378,7 +378,7 @@ body {
 .bottom-center-button,
 .map-button {
   position: fixed;
-  bottom: 100px; /* distanza dal fondo, lascia spazio alla bottom bar */
+  bottom: 160px; /* distanza dal fondo, lascia spazio alla bottom bar */
   left: 50%;
   transform: translateX(-50%);
   padding: 10px 20px;
@@ -405,6 +405,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
