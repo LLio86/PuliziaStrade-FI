@@ -334,7 +334,7 @@ function avviaTrackingContinuo() {
 
     watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        console.log("Posizione ricevuta dal pulsante:", pos.coords.latitude, pos.coords.longitude);
+        //console.log("Posizione ricevuta dal pulsante:", pos.coords.latitude, pos.coords.longitude);
         aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
@@ -612,6 +612,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
