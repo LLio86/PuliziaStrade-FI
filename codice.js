@@ -297,6 +297,7 @@ let watchId = null;
 
 
 function avviaTrackingContinuo() {
+  autoCenter = true;
   console.log("avviaTrackingContinuo() chiamata");
 
   if (navigator.geolocation) {
@@ -585,5 +586,6 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
