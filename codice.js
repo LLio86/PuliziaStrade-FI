@@ -271,6 +271,17 @@ const LocateControl = L.Control.extend({
     map.setView(marker.getLatLng(), map.getZoom());
   }
 
+  else if (watchId) {
+        // se il marker non esiste ancora, attendiamo la prima posizione
+        navigator.geolocation.getCurrentPosition(pos => {
+            aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+            map.setView([pos.coords.latitude, pos.coords.longitude], map.getZoom());
+        }, err => {
+            console.error("Errore geolocalizzazione:", err.message);
+        });
+    }
+
+
   if (trackingTimer) {
     clearInterval(trackingTimer); // assicurati che non sia duplicato
   }
@@ -586,6 +597,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
