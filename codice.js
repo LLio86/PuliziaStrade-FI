@@ -266,31 +266,35 @@ const LocateControl = L.Control.extend({
     //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
 
     container.onclick = function () {
-  tracking = true;
-  if (marker) {
-    map.setView(marker.getLatLng(), map.getZoom());
-  }
+    console.log("Click sul pulsante! tracking =", tracking);
 
-  else {
-        // marker non esiste ancora, prendiamo posizione attuale
+    tracking = true;
+
+    if (marker) {
+        console.log("Marker già esistente:", marker.getLatLng());
+        map.setView(marker.getLatLng(), map.getZoom());
+    } else if (watchId) {
+        console.log("Marker non esiste, uso getCurrentPosition...");
         navigator.geolocation.getCurrentPosition(pos => {
-            // aggiorniamo il marker
-            marker = L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map);
-            
-            // centriamo la mappa subito dopo aver creato il marker
+            console.log("Prima posizione ricevuta:", pos.coords.latitude, pos.coords.longitude);
+            aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
             map.setView([pos.coords.latitude, pos.coords.longitude], map.getZoom());
         }, err => {
             console.error("Errore geolocalizzazione:", err.message);
         });
+    } else {
+        console.log("Né marker né watchId disponibili!");
     }
 
+    if (trackingTimer) {
+        console.log("Pulisco trackingTimer precedente");
+        clearInterval(trackingTimer);
+    }
 
-  if (trackingTimer) {
-    clearInterval(trackingTimer); // assicurati che non sia duplicato
-  }
-        
-  avviaTrackingContinuo(); // <--- nuovo: riavvia l'aggiornamento continuo
+    console.log("Avvio tracking continuo");
+    avviaTrackingContinuo(); 
 };
+
 
     L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
 
@@ -600,6 +604,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
