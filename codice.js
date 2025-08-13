@@ -253,8 +253,16 @@ function aggiornaPosizione(lat, lon) {
     setTimeout(() => { isAutoPan = false; }, 200); // dopo 0.2s torno a false
   }
 
-  reverseGeocode(lat, lon);
+    // Chiamata a reverse geocoding con gestione degli errori
+    reverseGeocode(lat, lon)
+        .then(address => {
+            console.log("Indirizzo:", address);
+        })
+        .catch(err => {
+            console.warn("Reverse geocoding fallito:", err);
+        });
 }
+
 
 
 
@@ -604,6 +612,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
