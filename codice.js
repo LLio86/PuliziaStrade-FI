@@ -202,17 +202,19 @@ function reverseGeocode(lat, lon) {
             if (!comuneLower.includes("firenze")) {
                 document.getElementById("address").textContent = "L'app funziona solo a Firenze.";
                 document.getElementById("pulizia").innerHTML = "<strong>⚠️ Località non supportata</strong>";
-                return; // Interrompe la funzione qui
+                return null; // Interrompe la funzione qui
             }
 
             addressEl.textContent = via;
             const info = getPuliziaInfo(via);
             puliziaEl.innerHTML = info;
+            return via;
         })
         .catch(error => {
             console.error("Errore nel reverse geocoding:", error);
             document.getElementById("address").textContent = "Errore nel recupero dell'indirizzo.";
             document.getElementById("pulizia").innerHTML = "Impossibile ottenere dati.";
+            throw error; // rigetta la Promise
         });
 }
 
@@ -612,6 +614,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
