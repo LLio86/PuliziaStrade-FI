@@ -15,7 +15,7 @@ fetch('pulizia_firenze.geojson')
     .then(response => response.json())
     .then(data => {
         pulizieGeoJSON = data;
-        console.log("Dati pulizia caricati:", data);
+        //console.log("Dati pulizia caricati:", data);
         aggiornaListaPreferiti();
         // Aggiorna lista vie in pulizia oggi
         const listaDiv = document.getElementById("lista-pulizie-oggi");
@@ -612,6 +612,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
