@@ -5,7 +5,7 @@ let deferredPrompt = null;
 
 // Rileva Android e mostra il pulsante quando possibile
 window.addEventListener('beforeinstallprompt', (e) => {
-  alert('L’app può essere installata facendo clic sul banner');
+  //alert('L’app può essere installata facendo clic sul banner');
   //e.preventDefault();  // Blocca il popup automatico
   //console.log('Evento beforeinstallprompt ricevuto', e); // Debug
   deferredPrompt = e;
@@ -104,6 +104,7 @@ function showIosInstallMessage() {
 }
 
 window.addEventListener('load', showIosInstallMessage);
+
 
 
 
