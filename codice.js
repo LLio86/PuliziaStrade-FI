@@ -189,7 +189,7 @@ if (diffGiorni === 1) {
 }
 
 function reverseGeocode(lat, lon) {
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+    return fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
         .then(res => res.json())
         .then(data => {
             const address = data.address;
@@ -614,6 +614,7 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('Errore registrazione SW:', err));
   });
 }
+
 
 
 
