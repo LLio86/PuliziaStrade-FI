@@ -10,7 +10,7 @@ const preferitiEl = document.getElementById('lista-preferiti');
 // Carica preferite da localStorage all'avvio
 const saved = localStorage.getItem(STORAGE_KEY);
 preferite = saved ? JSON.parse(saved) : [];
-console.log('Preferiti caricati:', preferite);
+//console.log('Preferiti caricati:', preferite);
 aggiornaListaPreferiti();
 
 // Carica vie disponibili da GeoJSON
@@ -103,6 +103,7 @@ function rimuoviPreferita(via) {
   salvaPreferiti();
   aggiornaListaPreferiti();
 }
+
 
 
 
