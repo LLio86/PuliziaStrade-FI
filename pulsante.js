@@ -5,9 +5,9 @@ let deferredPrompt = null;
 
 // Rileva Android e mostra il pulsante quando possibile
 window.addEventListener('beforeinstallprompt', (e) => {
+  alert('L’app può essere installata! Premi OK per continuare.');
   e.preventDefault();  // Blocca il popup automatico
   console.log('Evento beforeinstallprompt ricevuto', e); // Debug
-  alert('L’app può essere installata! Premi OK per continuare.');
   deferredPrompt = e;
   if (installBtn) installBtn.style.display = 'block';
 });
@@ -104,6 +104,7 @@ function showIosInstallMessage() {
 }
 
 window.addEventListener('load', showIosInstallMessage);
+
 
 
 
