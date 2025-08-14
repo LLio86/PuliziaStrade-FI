@@ -7,6 +7,7 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();  // Blocca il popup automatico
   console.log('Evento beforeinstallprompt ricevuto', e); // Debug
+  alert('L’app può essere installata! Premi OK per continuare.');
   deferredPrompt = e;
   if (installBtn) installBtn.style.display = 'block';
 });
@@ -103,6 +104,7 @@ function showIosInstallMessage() {
 }
 
 window.addEventListener('load', showIosInstallMessage);
+
 
 
 
