@@ -1,4 +1,4 @@
-const cacheName = 'todo-cache-v2';
+const cacheName = 'todo-cache-v3';
 const filesToCache = [
   '/PuliziaStrade-FI/',
   '/PuliziaStrade-FI/index.html',
