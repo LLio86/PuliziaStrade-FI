@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Misura distanza dal punto</title>
+<title>Distanza dal punto fissato</title>
 <style>
   body { font-family: sans-serif; text-align: center; margin-top: 50px; }
   button { padding: 10px 20px; font-size: 18px; }
-  #distance { font-size: 24px; margin-top: 20px; }
+  #distance, #accuracy { font-size: 20px; margin-top: 15px; }
 </style>
 </head>
 <body>
@@ -15,42 +15,34 @@
 <h1>Distanza dal punto fissato</h1>
 <button id="setPointBtn">Fissa punto</button>
 <div id="distance">Distanza: --- m</div>
+<div id="accuracy">Accuratezza: --- m</div>
 
 <script>
 let targetPoint = null;
+let minChange = 5; // metri - variazioni sotto questa soglia ignorate
+let lastDistance = null;
 
-// Funzione per fissare il punto
-document.getElementById('setPointBtn').addEventListener('click', () => {
-  if (!navigator.geolocation) {
-    alert("Geolocalizzazione non supportata dal tuo browser.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(pos => {
-    targetPoint = {
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude
-    };
-    alert(`Punto fissato: lat ${targetPoint.lat.toFixed(6)}, lon ${targetPoint.lon.toFixed(6)}`);
-  }, err => {
-    alert("Errore geolocalizzazione: " + err.message);
-  });
-});
-
-// Funzione per calcolare distanza in metri tra due coordinate
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371000; // raggio terrestre in metri
+  const R = 6371000;
   const toRad = deg => deg * Math.PI / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a = Math.sin(dLat/2)**2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
             Math.sin(dLon/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
-// Aggiorna distanza ogni secondo
+document.getElementById('setPointBtn').addEventListener('click', () => {
+  alert("Aspetta qualche secondo mentre trovo un fix GPS preciso...");
+  navigator.geolocation.getCurrentPosition(pos => {
+    targetPoint = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    alert(`Punto fissato!\nLat: ${targetPoint.lat.toFixed(6)}\nLon: ${targetPoint.lon.toFixed(6)}\nAccuratezza: ${pos.coords.accuracy.toFixed(1)} m`);
+  }, err => {
+    alert("Errore geolocalizzazione: " + err.message);
+  }, { enableHighAccuracy: true, timeout: 10000 });
+});
+
 setInterval(() => {
   if (!targetPoint) return;
 
@@ -59,10 +51,18 @@ setInterval(() => {
       targetPoint.lat, targetPoint.lon,
       pos.coords.latitude, pos.coords.longitude
     );
-    document.getElementById('distance').textContent = `Distanza: ${dist.toFixed(2)} m`;
-  });
-}, 1000);
+    const acc = pos.coords.accuracy;
 
+    // Mostra solo se cambia di più di minChange metri
+    if (lastDistance === null || Math.abs(dist - lastDistance) >= minChange) {
+      document.getElementById('distance').textContent = `Distanza: ${dist.toFixed(2)} m`;
+      lastDistance = dist;
+    }
+
+    document.getElementById('accuracy').textContent = `Accuratezza: ±${acc.toFixed(1)} m`;
+  }, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+}, 1000);
 </script>
+
 </body>
 </html>
