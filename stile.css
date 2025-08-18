@@ -349,26 +349,31 @@ body {
 }
 
 .btn-condividi {
-  padding: 10px 15px;
-  background-color: var(--colore-btn-bg, #007bff);
-  color: var(--colore-btn-testo, white);
-  border: none;
-  border-radius: 8px;
+  display: block;
+  margin: 0.6em 1.2em;
+  padding: 1em;
+  background-color: var(--colore-box-bg);
+  color: var(--colore-box-testo);
+  border-radius: 10px;
+  border-left: 5px solid var(--colore-box-bordo);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  font-size: 1rem;
+  text-align: left;
   text-decoration: none;
-  font-size: 16px;
-  text-align: center;
-  display: inline-block;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .btn-condividi:hover {
-  background-color: var(--colore-btn-bg-hover, #0056b3);
+  background-color: var(--colore-box-accento);
+  color: var(--colore-header-testo);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 .btn-condividi:active {
-  background-color: var(--colore-btn-bg-active, #003f7f);
+  transform: scale(0.98);
 }
+
 
 #sezione-pulizia {
   position: relative;
@@ -405,6 +410,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
