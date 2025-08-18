@@ -349,20 +349,14 @@ body {
 }
 
 .btn-condividi {
-  display: block;
   background-color: var(--colore-box-bg);
-  color: var(--colore-box-testo);
-  border-radius: 10px;
   border-left: 5px solid var(--colore-box-bordo);
+  border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  font-size: 1rem;
-  padding: 0.8em 1em;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
+  margin: 0.6em 0;
+  padding: 1em;
 }
+
 
 .btn-condividi:hover {
   background-color: var(--colore-box-accento);
@@ -411,6 +405,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
