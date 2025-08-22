@@ -348,32 +348,31 @@ body {
   margin-bottom: 8px;
 }
 
+/* Pulsanti/link di condivisione con lo stile dei box */
 .btn-condividi {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  font-weight: 500;
-  background-color: var(--colore-btn-bg);
-  color: var(--colore-btn-testo);
-  border: none;
+  display: block;                  /* si comportano come box */
+  background-color: var(--colore-box-bg);
+  border-left: 5px solid var(--colore-box-bordo);
   border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   margin: 0.6em 0;
-  padding: 0.9em 1em;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.1s;
+  padding: 1em;
+  color: var(--colore-box-testo);  /* testo con colore del tema */
+  text-decoration: none;           /* niente sottolineatura */
+  font-weight: 500;
+  cursor: pointer;                 /* anche per <a> */
 }
 
 .btn-condividi:hover {
-  background-color: var(--colore-btn-bg-hover);
-  color: var(--colore-btn-testo);
-  transform: scale(1.03);
+  background-color: var(--colore-box-accento);
+  color: var(--colore-header-testo); /* testo leggibile sopra l’accento */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 .btn-condividi:active {
-  background-color: var(--colore-btn-bg-active);
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
+
 
 #sezione-pulizia {
   position: relative;
@@ -410,6 +409,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
