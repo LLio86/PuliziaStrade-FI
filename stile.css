@@ -355,7 +355,7 @@ body {
   border-left: 5px solid var(--colore-box-bordo);
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  margin: 0.6em 0;
+  margin: 1em 1.5em;
   padding: 1em;
   color: var(--colore-box-testo);  /* testo con colore del tema */
   text-decoration: none;           /* niente sottolineatura */
@@ -409,6 +409,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
