@@ -66,45 +66,55 @@
             <ul id="lista-preferiti"></ul>
         </div>
 
-		
 
-        <!-- ⚙️ Sezione Impostazioni -->
+		<!-- ⚙️ Sezione Impostazioni -->
 <div class="sezione" id="sezione-impostazioni" style="display:none;">
   <h3>⚙️ Impostazioni</h3>
   <p>Personalizza notifiche, lingua o altre preferenze.</p>
 
-  <label for="tema-select"><strong>🎨 Tema:</strong></label>
-  <select id="tema-select">
-    <option value="chiaro">☀️ Chiaro</option>
-    <option value="scuro">🌙 Scuro</option>
-    <option value="alto-contrasto">⚡ Alto Contrasto</option>
-  </select>
+  <!-- Tema -->
+  <div class="impostazione">
+    <span><strong>🎨 Tema</strong></span>
+    <select id="tema-select">
+      <option value="chiaro">☀️ Chiaro</option>
+      <option value="scuro">🌙 Scuro</option>
+      <option value="alto-contrasto">⚡ Alto Contrasto</option>
+    </select>
+  </div>
 
-  <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+  <!-- Tema automatico -->
+  <div class="impostazione">
+    <span><strong>🌐 Tema automatico</strong></span>
     <label class="switch-label">
       <input type="checkbox" id="tema-auto-checkbox" />
       <span class="switch-slider"></span>
     </label>
-    <span>tema automatico</span>
   </div>
 
-	<!-- Dimensione testo -->
-  <label for="dimensione-testo" style="display:block; margin-top: 15px;"><strong>🔠 Dimensione testo:</strong></label>
-  <input type="range" id="dimensione-testo" min="0.6" max="1.1" step="0.1" value="0.9" />
+  <!-- Dimensione testo -->
+  <div class="impostazione">
+    <span><strong>🔠 Dimensione testo</strong></span>
+    <input type="range" id="dimensione-testo" min="0.6" max="1.1" step="0.1" value="0.9" />
+  </div>
 
-	<!-- Notifiche -->
-  <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+  <!-- Notifiche -->
+  <div class="impostazione">
+    <span><strong>🔔 Attiva notifiche</strong></span>
     <label class="switch-label">
       <input type="checkbox" id="notifiche-checkbox" />
       <span class="switch-slider"></span>
     </label>
-    <span>Attiva notifiche</span>
   </div>
-
-
-	
 </div>
 
+
+
+
+
+		
+		
+
+		
 <!-- ☰ Sezione Altro -->
 <div class="sezione" id="sezione-altro" style="display:none;">
   <h3>☰ Altro</h3>
@@ -167,6 +177,7 @@
 
 </body>
 </html>
+
 
 
 
