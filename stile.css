@@ -3,7 +3,7 @@
   --colore-sfondo: #e8ebf1;
   --colore-testo: #333;
   --colore-header-bg: #5a328c;
-  --colore-header-bordo: #472776;
+  --colore-header-bordo: #5a328c;
   --colore-header-testo: #ffffff;
   --colore-box-bg: #ffffff;
   --colore-box-bordo: #5a328c;
@@ -31,7 +31,7 @@ body.tema-scuro {
   --colore-sfondo: #1d1d1d;
   --colore-testo: #f0f0f0;
   --colore-header-bg: #5a328c;
-  --colore-header-bordo: #1a0933;
+  --colore-header-bordo: #5a328c;
   --colore-header-testo: #ffffff;
   --colore-box-bg: #2c2c2c;
   --colore-box-bordo: #a77eff;
@@ -489,6 +489,7 @@ body {
   font-size: 0.95em;
   color: var(--colore-corsivo);
 }
+
 
 
 
