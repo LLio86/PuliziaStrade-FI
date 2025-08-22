@@ -357,7 +357,7 @@ body {
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
   margin: 1em 1.5em;
   padding: 1em;
-  color: var(--colore-box-testo);  /* testo con colore del tema */
+  color: var(--colore-box-accento);  
   text-decoration: none;           /* niente sottolineatura */
   font-weight: 500;
   cursor: pointer;                 /* anche per <a> */
@@ -409,6 +409,7 @@ body {
   z-index: 999; /* leggermente sotto la bottom bar */
   border-top: 1px solid #ccc;
 }
+
 
 
 
