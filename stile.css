@@ -30,8 +30,8 @@
 body.tema-scuro {
   --colore-sfondo: #1d1d1d;
   --colore-testo: #f0f0f0;
-  --colore-header-bg: #5a328c;
-  --colore-header-bordo: #5a328c;
+  --colore-header-bg: #c397ff;
+  --colore-header-bordo: #c397ff;
   --colore-header-testo: #ffffff;
   --colore-box-bg: #2c2c2c;
   --colore-box-bordo: #a77eff;
@@ -489,6 +489,7 @@ body {
   font-size: 0.95em;
   color: var(--colore-corsivo);
 }
+
 
 
 
