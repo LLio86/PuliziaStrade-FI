@@ -39,7 +39,7 @@ body.tema-scuro {
   --colore-box-accento: #c397ff;
   --colore-bottom-bar: #2c2c2c;
   --colore-bottom-bar-bordo: #444;
-  --colore-bar-item: #c397ff;
+  --colore-bar-item: #5a328c;
   --colore-bar-item-attivo: #e0d0ff;
   --colore-evidenza-bg: #4c4c00;
   --colore-evidenza-testo: #ffff99;
@@ -489,6 +489,7 @@ body {
   font-size: 0.95em;
   color: var(--colore-corsivo);
 }
+
 
 
 
