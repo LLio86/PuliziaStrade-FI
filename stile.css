@@ -469,6 +469,24 @@ body {
   cursor: pointer;
 }
 
+/* Box header interno per ogni sezione */
+.sezione h3 {
+  background-color: var(--colore-box-bg);
+  padding: 0.8em 1em;
+  border-left: 5px solid var(--colore-box-accento);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  color: var(--colore-box-accento);
+  font-size: 1.2em;
+  margin-bottom: 0.3em;
+}
+
+.sezione p {
+  margin-left: 0.5em; /* leggero rientro sotto il titolo */
+  font-size: 0.95em;
+  color: var(--colore-corsivo);
+}
+
 
 
 
