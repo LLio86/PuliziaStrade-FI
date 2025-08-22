@@ -411,6 +411,59 @@ body {
 }
 
 
+/* Ogni voce impostazione in una riga */
+.impostazione {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--colore-box-bg);
+  border-bottom: 1px solid var(--colore-box-bordo);
+  padding: 1em 1.2em;
+  color: var(--colore-box-testo);
+  font-size: 1em;
+}
+
+/* Ultimo elemento senza bordo */
+.impostazione:last-child {
+  border-bottom: none;
+}
+
+/* Select e slider adattati allo stile "mobile settings" */
+.impostazione select,
+.impostazione input[type="range"] {
+  margin-left: 1em;
+  border: 1px solid var(--colore-box-bordo);
+  border-radius: 6px;
+  padding: 0.4em 0.6em;
+  background-color: var(--colore-sfondo);
+  color: var(--colore-testo);
+  font-size: 0.95em;
+}
+
+/* Range più elegante */
+.impostazione input[type="range"] {
+  -webkit-appearance: none;
+  width: 150px;
+  height: 6px;
+  background: var(--colore-box-bordo);
+  border-radius: 3px;
+}
+.impostazione input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--colore-box-accento);
+  cursor: pointer;
+}
+.impostazione input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--colore-box-accento);
+  cursor: pointer;
+}
+
 
 
 
