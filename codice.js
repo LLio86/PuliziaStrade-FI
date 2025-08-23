@@ -625,3 +625,4 @@ if ('serviceWorker' in navigator) {
 
 
 
+document.getElementById("titolo-pulizia").textContent = `📅 Pulizia Strade di oggi ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
