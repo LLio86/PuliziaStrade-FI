@@ -378,6 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.classList.remove('active');
             });
             item.classList.add('active');
+
+            // 👇 Riporto lo scroll in alto
+            window.scrollTo({ top: 0, behavior: "instant" });
+            // se vuoi animato usa: { top: 0, behavior: "smooth" }
         });
     });
 });
@@ -626,4 +630,5 @@ if ('serviceWorker' in navigator) {
 
 
 document.getElementById("titolo-pulizia").textContent = `📅 Pulizia Strade ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
+
 
