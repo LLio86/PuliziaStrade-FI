@@ -492,6 +492,7 @@ body {
 
 
 #ios-install-msg {
+  color:var(--colore-header-bg);
   position: fixed;
   top: 60px;        /* posizione sotto la header */
   left: 10px;
@@ -508,6 +509,7 @@ body {
   user-select: none;
   display: none;
 }
+
 
 
 
