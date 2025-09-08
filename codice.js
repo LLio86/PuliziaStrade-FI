@@ -268,59 +268,51 @@ function aggiornaPosizione(lat, lon) {
 
 
 
-// Pulsante "centra e segui" corretto
+// Pulsante "centra e segui"
 const LocateControl = L.Control.extend({
   onAdd: function (map) {
     const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
     container.title = 'Centra e segui la mia posizione';
-
-    let ignoreNextMoveStart = false;
-
-    map.on('movestart', () => {
-      if (!ignoreNextMoveStart) {
-        tracking = false;
-        console.log("Tracking disattivato per spostamento manuale");
-      } else {
-        console.log("Movestart ignorato (causato da setView)");
-        ignoreNextMoveStart = false;
-      }
-    });
+    //container.innerHTML = '📍'; // Puoi anche usare un'icona SVG
 
     container.onclick = function () {
-        console.log("Click sul pulsante! tracking =", tracking);
+    console.log("Click sul pulsante! tracking =", tracking);
 
-        tracking = true;
+    tracking = true;
 
-        if (marker) {
-            ignoreNextMoveStart = true;  // ignora movestart causato da setView
-            map.setView(marker.getLatLng(), map.getZoom());
-        } else if (watchId) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                ignoreNextMoveStart = true;
-                aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
-                map.setView([pos.coords.latitude, pos.coords.longitude], map.getZoom());
-            }, err => {
-                console.error("Errore geolocalizzazione:", err.message);
-            });
-        } else {
-            console.log("Né marker né watchId disponibili!");
-        }
+    if (marker) {
+        console.log("Marker già esistente:", marker.getLatLng());
+        map.setView(marker.getLatLng(), map.getZoom());
+    } else if (watchId) {
+        console.log("Marker non esiste, uso getCurrentPosition...");
+        navigator.geolocation.getCurrentPosition(pos => {
+            console.log("Prima posizione ricevuta:", pos.coords.latitude, pos.coords.longitude);
+            aggiornaPosizione(pos.coords.latitude, pos.coords.longitude);
+            map.setView([pos.coords.latitude, pos.coords.longitude], map.getZoom());
+        }, err => {
+            console.error("Errore geolocalizzazione:", err.message);
+        });
+    } else {
+        console.log("Né marker né watchId disponibili!");
+    }
 
-        if (trackingTimer) {
-            clearInterval(trackingTimer);
-        }
+    if (trackingTimer) {
+        console.log("Pulisco trackingTimer precedente");
+        clearInterval(trackingTimer);
+    }
 
-        console.log("Avvio tracking continuo");
-        avviaTrackingContinuo(); 
-    };
+    console.log("Avvio tracking continuo");
+    avviaTrackingContinuo(); 
+};
 
-    L.DomEvent.disableClickPropagation(container); // evita il drag della mappa al click
+
+    L.DomEvent.disableClickPropagation(container); // Evita il drag della mappa al click
+
     return container;
   }
 });
 
 map.addControl(new LocateControl({ position: 'topleft' }));
-
 
 
 
@@ -638,6 +630,4 @@ if ('serviceWorker' in navigator) {
 
 
 document.getElementById("titolo-pulizia").textContent = `📅 Pulizia Strade ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
-
-
 
