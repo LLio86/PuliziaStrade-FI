@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Web Avanzato</title>
+<style>
+  body { font-family: Arial; padding: 20px; }
+  textarea { width: 100%; height: 100px; }
+  button { margin: 5px 0; padding: 10px; }
+  p { word-wrap: break-word; font-size: 1.2em; }
+</style>
+</head>
+<body>
+
+<h1>Codice Morse Web Avanzato</h1>
+
+<h2>Testo → Morse</h2>
+<textarea id="textInput" placeholder="Scrivi qui..."></textarea><br>
+<button onclick="textToMorse()">Converti in Morse</button>
+<p id="morseOutput"></p>
+<button onclick="playMorse()">Riproduci Morse</button>
+
+<h2>Morse → Testo</h2>
+<button id="listenBtn" onclick="toggleListening()">Avvia/Interrompi Ascolto Morse</button>
+<p id="decodedText"></p>
+
+<script>
+// =================== DIZIONARI MORSE ===================
+const morseCode = {
+  'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+  'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+  'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+  'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+  'Y': '-.--', 'Z': '--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+  '6':'-....','7':'--...','8':'---..','9':'----.'
+};
+
+const inverseMorse = Object.fromEntries(
+  Object.entries(morseCode).map(([k,v]) => [v, k])
+);
+
+// =================== TESTO → MORSE ===================
+function textToMorse() {
+  const text = document.getElementById('textInput').value.toUpperCase();
+  const morse = text.split('').map(c => morseCode[c] || ' ').join(' ');
+  document.getElementById('morseOutput').innerText = morse;
+}
+
+// =================== RIPRODUZIONE MORSE ===================
+function playMorse() {
+  const morse = document.getElementById('morseOutput').innerText;
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  let time = context.currentTime;
+  const dot = 0.2, dash = dot*3, gap = dot;
+
+  morse.split('').forEach(symbol => {
+    if(symbol === '.') {
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 600;
+      osc.connect(context.destination);
+      osc.start(time);
+      osc.stop(time + dot);
+      time += dot + gap;
+    } else if(symbol === '-') {
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 600;
+      osc.connect(context.destination);
+      osc.start(time);
+      osc.stop(time + dash);
+      time += dash + gap;
+    } else {
+      time += gap*3; // spazio tra lettere
+    }
+  });
+}
+
+// =================== MICROFONO → MORSE → TESTO ===================
+let listening = false;
+let audioContext, analyser, dataArray, source;
+let morseBuffer = '', lastSignalTime = 0;
+let decodedText = '';
+
+function toggleListening() {
+  if(listening) {
+    listening = false;
+    if(source) source.mediaStream.getTracks().forEach(track => track.stop());
+    document.getElementById('listenBtn').innerText = "Avvia Ascolto Morse";
+    document.getElementById('decodedText').innerText = "Ascolto interrotto.";
+  } else {
+    startListening();
+  }
+}
+
+function startListening() {
+  listening = true;
+  document.getElementById('listenBtn').innerText = "Interrompi Ascolto Morse";
+  document.getElementById('decodedText').innerText = "Ascolto in corso...";
+  morseBuffer = '';
+  decodedText = '';
+  lastSignalTime = 0;
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    source = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    dataArray = new Uint8Array(analyser.fftSize);
+    source.connect(analyser);
+
+    function processAudio() {
+      analyser.getByteTimeDomainData(dataArray);
+      const max = Math.max(...dataArray);
+      const min = Math.min(...dataArray);
+      const amplitude = max - min;
+
+      const now = audioContext.currentTime;
+      const threshold = 25; // da regolare a seconda del microfono
+      let signal = amplitude > threshold;
+
+      if(signal) {
+        if(lastSignalTime === 0) lastSignalTime = now;
+      } else if(lastSignalTime > 0) {
+        const duration = now - lastSignalTime;
+        if(duration < 0.3) morseBuffer += '.';
+        else morseBuffer += '-';
+        lastSignalTime = 0;
+        morseBuffer += ' '; // separatore tra simboli
+      }
+
+      // Gestione spazi tra lettere e parole
+      if(!signal && lastSignalTime === 0) {
+        if(morseBuffer.length > 0) {
+          const morseSymbols = morseBuffer.trim().split(' ');
+          morseSymbols.forEach(symbol => {
+            if(symbol) {
+              decodedText += inverseMorse[symbol] || '';
+            }
+          });
+          decodedText += ' ';
+          morseBuffer = '';
+          document.getElementById('decodedText').innerText = decodedText.trim();
+        }
+      }
+
+      if(listening) requestAnimationFrame(processAudio);
+    }
+
+    processAudio();
+  }).catch(err => {
+    alert("Errore microfono: " + err);
+  });
+}
+</script>
+
+</body>
+</html>
