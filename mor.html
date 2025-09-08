@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Morse Web Avanzato</title>
+<title>Morse Web Corretto</title>
 <style>
   body { font-family: Arial; padding: 20px; }
   textarea { width: 100%; height: 100px; }
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<h1>Codice Morse Web Avanzato</h1>
+<h1>Codice Morse Web Corretto</h1>
 
 <h2>Testo → Morse</h2>
 <textarea id="textInput" placeholder="Scrivi qui..."></textarea><br>
@@ -26,7 +26,7 @@
 <p id="decodedText"></p>
 
 <script>
-// =================== DIZIONARI MORSE ===================
+// =================== DIZIONARI ===================
 const morseCode = {
   'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
   'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
@@ -36,10 +36,7 @@ const morseCode = {
   '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
   '6':'-....','7':'--...','8':'---..','9':'----.'
 };
-
-const inverseMorse = Object.fromEntries(
-  Object.entries(morseCode).map(([k,v]) => [v, k])
-);
+const inverseMorse = Object.fromEntries(Object.entries(morseCode).map(([k,v]) => [v,k]));
 
 // =================== TESTO → MORSE ===================
 function textToMorse() {
@@ -81,7 +78,9 @@ function playMorse() {
 // =================== MICROFONO → MORSE → TESTO ===================
 let listening = false;
 let audioContext, analyser, dataArray, source;
-let morseBuffer = '', lastSignalTime = 0;
+let signalStart = 0;
+let silenceStart = 0;
+let morseLetterBuffer = '';
 let decodedText = '';
 
 function toggleListening() {
@@ -97,11 +96,12 @@ function toggleListening() {
 
 function startListening() {
   listening = true;
+  decodedText = '';
+  morseLetterBuffer = '';
+  signalStart = 0;
+  silenceStart = 0;
   document.getElementById('listenBtn').innerText = "Interrompi Ascolto Morse";
   document.getElementById('decodedText').innerText = "Ascolto in corso...";
-  morseBuffer = '';
-  decodedText = '';
-  lastSignalTime = 0;
 
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -118,34 +118,36 @@ function startListening() {
       const amplitude = max - min;
 
       const now = audioContext.currentTime;
-      const threshold = 25; // da regolare a seconda del microfono
+      const threshold = 25;
       let signal = amplitude > threshold;
 
-      if(signal) {
-        if(lastSignalTime === 0) lastSignalTime = now;
-      } else if(lastSignalTime > 0) {
-        const duration = now - lastSignalTime;
-        if(duration < 0.3) morseBuffer += '.';
-        else morseBuffer += '-';
-        lastSignalTime = 0;
-        morseBuffer += ' '; // separatore tra simboli
-      }
-
-      // Gestione spazi tra lettere e parole
-      if(!signal && lastSignalTime === 0) {
-        if(morseBuffer.length > 0) {
-          const morseSymbols = morseBuffer.trim().split(' ');
-          morseSymbols.forEach(symbol => {
-            if(symbol) {
-              decodedText += inverseMorse[symbol] || '';
-            }
-          });
-          decodedText += ' ';
-          morseBuffer = '';
-          document.getElementById('decodedText').innerText = decodedText.trim();
+      // =================== INIZIO/FINALE SEGNALE ===================
+      if(signal && signalStart === 0) {
+        signalStart = now;
+        if(silenceStart > 0) {
+          const silenceDuration = now - silenceStart;
+          // Silenzio medio → fine lettera
+          if(silenceDuration > 0.3 && morseLetterBuffer) {
+            decodedText += inverseMorse[morseLetterBuffer] || '';
+            morseLetterBuffer = '';
+          }
+          // Silenzio lungo → spazio tra parole
+          if(silenceDuration > 0.7) {
+            decodedText += ' ';
+          }
+          silenceStart = 0;
         }
       }
 
+      if(!signal && signalStart > 0) {
+        const duration = now - signalStart;
+        if(duration < 0.25) morseLetterBuffer += '.';
+        else morseLetterBuffer += '-';
+        signalStart = 0;
+        silenceStart = now;
+      }
+
+      document.getElementById('decodedText').innerText = decodedText;
       if(listening) requestAnimationFrame(processAudio);
     }
 
