@@ -16,9 +16,9 @@
   --colore-evidenza-bg: #ffeeba;
   --colore-evidenza-testo: #856404;
   --colore-corsivo: #666;
-  --colore-domani-bg: #ffdddd; /* cambiare questo */
+  --colore-domani-bg: #ff7373; /* cambiare questo */
   --colore-domani-bordo: red;
-  --colore-prossimi-bg: #fff4e5;
+  --colore-prossimi-bg: #fff411;
   --colore-prossimi-bordo: orange;
   --colore-btn-bg: #5a328c;
   --colore-btn-bg-hover: #5a328c;
@@ -29,7 +29,7 @@
 /* 🎨 Tema scuro */
 body.tema-scuro {
   --colore-sfondo: #1d1d1d;
-  --colore-testo: #f0f0f0;
+  --colore-testo: #ffffff;
   --colore-header-bg: #5a328c;
   --colore-header-bordo: #5a328c;
   --colore-header-testo: #ffffff;
@@ -44,9 +44,9 @@ body.tema-scuro {
   --colore-evidenza-bg: #4c4c00;
   --colore-evidenza-testo: #ffff99;
   --colore-corsivo: #aaa;
-  --colore-domani-bg: #ffdddd;
+  --colore-domani-bg: #ff7373;
   --colore-domani-bordo: red;
-  --colore-prossimi-bg: #fff4e5;
+  --colore-prossimi-bg: #fff411;
   --colore-prossimi-bordo: orange;
   --colore-btn-bg: #2e1253;
   --colore-btn-bg-hover: #2e1253;
@@ -509,24 +509,5 @@ body {
   user-select: none;
   display: none;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
