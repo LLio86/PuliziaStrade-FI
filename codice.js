@@ -479,7 +479,7 @@ function filtraPulizieOggi() {
 
 // --- 1. Creazione mappa Leaflet ---
 let mappaPulizia = null;
-const markerGroup = L.layerGroup();
+const markerGroup = L.featureGroup();
 
 document.getElementById('btn-map-view').addEventListener('click', () => {
   document.getElementById('lista-pulizie-oggi').style.display = 'none';
@@ -630,4 +630,5 @@ if ('serviceWorker' in navigator) {
 
 
 document.getElementById("titolo-pulizia").textContent = `📅 Pulizia Strade ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
+
 
