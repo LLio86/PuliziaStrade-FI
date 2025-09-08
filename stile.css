@@ -44,9 +44,9 @@ body.tema-scuro {
   --colore-evidenza-bg: #4c4c00;
   --colore-evidenza-testo: #ffff99;
   --colore-corsivo: #aaa;
-  --colore-domani-bg: #ff7373;
+  --colore-domani-bg: #d05c5c;
   --colore-domani-bordo: red;
-  --colore-prossimi-bg: #fff411;
+  --colore-prossimi-bg: #b9b104;
   --colore-prossimi-bordo: orange;
   --colore-btn-bg: #2e1253;
   --colore-btn-bg-hover: #2e1253;
@@ -473,7 +473,7 @@ body {
 .sezione h3 {
   background-color: var(--colore-box-bg);
   padding: 0.8em 1em;
-  border-left: 5px solid var(--colore-box-accento);
+  border-left: 5px solid #5a328c;
   border-top-left-radius: 0;       /* niente arrotondamento in alto */
   border-bottom-left-radius: 10px; /* arrotondato solo sotto */
   border-top-right-radius: 0;   /* arrotondato lato destro */
