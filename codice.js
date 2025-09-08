@@ -565,6 +565,8 @@ function mostraVieMappa(vie) {
       colore = 'red'; // non iniziata
     }
 
+      console.log(`Coloro via: ${indirizzo}, tipo geometria: ${f.geometry.type}, colore: ${colore}`);
+
     // Se la feature ha geometria punto o linea (se hai linee puoi cambiare marker con polyline)
     if (f.geometry.type === 'Point') {
       const [lng, lat] = f.geometry.coordinates;
@@ -630,5 +632,6 @@ if ('serviceWorker' in navigator) {
 
 
 document.getElementById("titolo-pulizia").textContent = `📅 Pulizia Strade ${new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
+
 
 
