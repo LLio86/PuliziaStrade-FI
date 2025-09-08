@@ -3,27 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Morse Web Corretto</title>
+<title>Morse Web Precisione FFT</title>
 <style>
   body { font-family: Arial; padding: 20px; }
-  textarea { width: 100%; height: 100px; }
-  button { margin: 5px 0; padding: 10px; }
+  textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+  button { padding: 10px; margin-bottom: 10px; }
   p { word-wrap: break-word; font-size: 1.2em; }
+  #symbolBuffer { font-size: 1.5em; color: blue; }
 </style>
 </head>
 <body>
 
-<h1>Codice Morse Web Corretto</h1>
+<h1>Morse Web Trasmissione e Decodifica con FFT</h1>
 
 <h2>Testo → Morse</h2>
 <textarea id="textInput" placeholder="Scrivi qui..."></textarea><br>
 <button onclick="textToMorse()">Converti in Morse</button>
 <p id="morseOutput"></p>
-<button onclick="playMorse()">Riproduci Morse</button>
+<button onclick="sendMorse()">Trasmetti Morse</button>
 
 <h2>Morse → Testo</h2>
 <button id="listenBtn" onclick="toggleListening()">Avvia/Interrompi Ascolto Morse</button>
-<p id="decodedText"></p>
+<p>Simboli rilevati: <span id="symbolBuffer"></span></p>
+<p>Testo decodificato: <span id="decodedText"></span></p>
 
 <script>
 // =================== DIZIONARI ===================
@@ -45,12 +47,23 @@ function textToMorse() {
   document.getElementById('morseOutput').innerText = morse;
 }
 
-// =================== RIPRODUZIONE MORSE ===================
-function playMorse() {
+// =================== TRASMISSIONE MORSE ===================
+async function sendMorse() {
+  await startListening(); // Inizia ascolto prima
+  await new Promise(r => setTimeout(r, 500)); // pre-avviso
   const morse = document.getElementById('morseOutput').innerText;
   const context = new (window.AudioContext || window.webkitAudioContext)();
   let time = context.currentTime;
-  const dot = 0.2, dash = dot*3, gap = dot;
+  const dot = 0.5, dash = dot*3, gap = 0.5;
+
+  // piccolo beep pre-avviso
+  const oscPre = context.createOscillator();
+  oscPre.type = 'sine';
+  oscPre.frequency.value = 800;
+  oscPre.connect(context.destination);
+  oscPre.start(time);
+  oscPre.stop(time + 0.2);
+  time += 0.4;
 
   morse.split('').forEach(symbol => {
     if(symbol === '.') {
@@ -70,18 +83,18 @@ function playMorse() {
       osc.stop(time + dash);
       time += dash + gap;
     } else {
-      time += gap*3; // spazio tra lettere
+      time += gap*3; // spazio lettere
     }
   });
 }
 
-// =================== MICROFONO → MORSE → TESTO ===================
+// =================== MICROFONO → DECODIFICA FFT ===================
 let listening = false;
 let audioContext, analyser, dataArray, source;
-let signalStart = 0;
-let silenceStart = 0;
+let signalStart = 0, silenceStart = 0;
 let morseLetterBuffer = '';
 let decodedText = '';
+let prevAmplitude = 0;
 
 function toggleListening() {
   if(listening) {
@@ -89,72 +102,84 @@ function toggleListening() {
     if(source) source.mediaStream.getTracks().forEach(track => track.stop());
     document.getElementById('listenBtn').innerText = "Avvia Ascolto Morse";
     document.getElementById('decodedText').innerText = "Ascolto interrotto.";
+    document.getElementById('symbolBuffer').innerText = '';
   } else {
     startListening();
   }
 }
 
-function startListening() {
+async function startListening() {
   listening = true;
   decodedText = '';
   morseLetterBuffer = '';
   signalStart = 0;
   silenceStart = 0;
+  prevAmplitude = 0;
   document.getElementById('listenBtn').innerText = "Interrompi Ascolto Morse";
   document.getElementById('decodedText').innerText = "Ascolto in corso...";
+  document.getElementById('symbolBuffer').innerText = '';
 
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    source = audioContext.createMediaStreamSource(stream);
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    dataArray = new Uint8Array(analyser.fftSize);
-    source.connect(analyser);
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  source = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  dataArray = new Uint8Array(analyser.fftSize);
+  source.connect(analyser);
 
-    function processAudio() {
-      analyser.getByteTimeDomainData(dataArray);
-      const max = Math.max(...dataArray);
-      const min = Math.min(...dataArray);
-      const amplitude = max - min;
+  function processAudio() {
+    analyser.getByteTimeDomainData(dataArray);
 
-      const now = audioContext.currentTime;
-      const threshold = 25;
-      let signal = amplitude > threshold;
+    // FFT
+    const fft = new Float32Array(analyser.frequencyBinCount);
+    analyser.getFloatFrequencyData(fft);
 
-      // =================== INIZIO/FINALE SEGNALE ===================
-      if(signal && signalStart === 0) {
-        signalStart = now;
-        if(silenceStart > 0) {
-          const silenceDuration = now - silenceStart;
-          // Silenzio medio → fine lettera
-          if(silenceDuration > 0.3 && morseLetterBuffer) {
-            decodedText += inverseMorse[morseLetterBuffer] || '';
-            morseLetterBuffer = '';
-          }
-          // Silenzio lungo → spazio tra parole
-          if(silenceDuration > 0.7) {
-            decodedText += ' ';
-          }
-          silenceStart = 0;
+    // frequenza beep target ~600Hz
+    const sampleRate = audioContext.sampleRate;
+    const binSize = sampleRate / analyser.fftSize;
+    const targetBin = Math.round(600 / binSize);
+    const amplitude = fft[targetBin] ? Math.pow(10, fft[targetBin]/20) : 0;
+
+    // smoothing
+    const smoothAmp = 0.8*prevAmplitude + 0.2*amplitude;
+    prevAmplitude = smoothAmp;
+
+    const threshold = 0.02; // regola in base al microfono
+    const now = audioContext.currentTime;
+    const signal = smoothAmp > threshold;
+
+    // inizio segnale
+    if(signal && signalStart === 0) {
+      signalStart = now;
+      if(silenceStart > 0) {
+        const silenceDuration = now - silenceStart;
+        if(silenceDuration > 0.8 && morseLetterBuffer) {
+          decodedText += inverseMorse[morseLetterBuffer] || '';
+          morseLetterBuffer = '';
         }
+        if(silenceDuration > 1.5) {
+          decodedText += ' ';
+        }
+        silenceStart = 0;
       }
-
-      if(!signal && signalStart > 0) {
-        const duration = now - signalStart;
-        if(duration < 0.25) morseLetterBuffer += '.';
-        else morseLetterBuffer += '-';
-        signalStart = 0;
-        silenceStart = now;
-      }
-
-      document.getElementById('decodedText').innerText = decodedText;
-      if(listening) requestAnimationFrame(processAudio);
     }
 
-    processAudio();
-  }).catch(err => {
-    alert("Errore microfono: " + err);
-  });
+    // fine segnale
+    if(!signal && signalStart > 0) {
+      const duration = now - signalStart;
+      if(duration < 0.7) morseLetterBuffer += '.';
+      else morseLetterBuffer += '-';
+      signalStart = 0;
+      silenceStart = now;
+    }
+
+    document.getElementById('symbolBuffer').innerText = morseLetterBuffer;
+    document.getElementById('decodedText').innerText = decodedText;
+
+    if(listening) requestAnimationFrame(processAudio);
+  }
+
+  processAudio();
 }
 </script>
 
