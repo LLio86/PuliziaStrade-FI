@@ -1,326 +1,138 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Morse Web Avanzato - Falsi punti eliminati</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Semplice</title>
 <style>
-body { font-family: Arial; padding: 18px; max-width:900px; margin:auto; }
-h1 { margin-top:0 }
-textarea { width:100%; height:90px; margin-bottom:8px; }
-button { padding:10px 14px; margin-right:8px; margin-bottom:8px; }
-.small { font-size:0.9em; color:#444; }
-#status { font-weight:600; margin:8px 0; }
-#symbolBuffer { font-size:1.2em; color:#0b5; min-height:1.2em; }
-#debug { font-family:monospace; white-space:pre-wrap; background:#f6f6f6; padding:8px; border-radius:6px; max-height:180px; overflow:auto; }
-label { display:inline-block; margin-right:8px; }
-.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+textarea { width: 100%; height: 80px; }
+button { padding: 8px 12px; margin: 5px; }
+#decodedText { font-weight: bold; margin-top: 10px; }
+#symbolBuffer { color: green; font-weight: bold; }
 </style>
 </head>
 <body>
-<h1>Morse Web Avanzato - Falsi punti eliminati</h1>
-<p class="small">Sul ricevitore: premi <b>Avvia Ascolto</b> e attendi calibrazione; poi il mittente può premere <b>Trasmetti Morse</b>.</p>
+<h1>Morse Minimalista</h1>
 
-<section>
 <h2>Mittente</h2>
-<textarea id="textInput">HELLO WORLD</textarea>
-<div class="row">
-<button id="toMorseBtn">Converti in Morse</button>
+<textarea id="textInput">HELLO WORLD</textarea><br>
 <button id="sendBtn">Trasmetti Morse</button>
-<label><input id="usePreBeep" type="checkbox" checked> Usa preambolo (consigliato)</label>
-</div>
-<div><strong>Morse:</strong> <span id="morseOutput"></span></div>
-</section>
 
-<hr/>
-
-<section>
 <h2>Ricevitore</h2>
-<div class="row">
 <button id="listenBtn">Avvia Ascolto</button>
 <button id="stopBtn">Ferma Ascolto</button>
-<label>Debug: <input id="debugToggle" type="checkbox"></label>
-</div>
-<div id="status">Stato: <span id="stateLabel">IDLE</span></div>
-<div><strong>Simboli (lettera corrente):</strong> <span id="symbolBuffer"></span></div>
-<div><strong>Testo decodificato:</strong> <span id="decodedText"></span></div>
-<h3>Parametri e diagnostica</h3>
-<div class="small">Frequenza messaggio: <b>600Hz</b> — Preambolo: <b>1000Hz</b></div>
-<div class="small">Calibrazione automatica soglia rumore. Timeout lettere e parole gestiti automaticamente.</div>
-<div id="debug" style="display:none"></div>
-</section>
+<p>Simboli correnti: <span id="symbolBuffer"></span></p>
+<p>Testo decodificato: <span id="decodedText"></span></p>
 
 <script>
-/* =========================
-Parametri e costanti
-========================= */
-const MSG_FREQ = 600;
-const PREAMBLE_FREQ = 1000;
-const PREAMBLE_MIN_DURATION = 0.45;
-const CALIBRATION_DURATION = 1.0;
-const FFT_SIZE = 4096;
-const BIN_SPREAD = 2;
-const PREEMPH_DB = 12;
-const MSG_DB_MARGIN = 18; // aumento soglia per rumore
-const SIGNAL_MIN_DURATION = 0.08; // debounce minimo 80ms
-
-const DOT_MAX = 0.8;
-const DASH_MIN = 0.8;
-const INTER_SYMBOL_SILENCE = 0.6;
-const LETTER_SILENCE = 1.1;
-const WORD_SILENCE = 2.0;
-const END_OF_TRANSMISSION = 4.0;
-
-/* =========================
-Stato e variabili audio
-========================= */
-let audioContext, analyser, sourceStream, freqData;
-let listening = false;
-let rafId;
-let state = 'IDLE';
-let prevDbg = '';
-let debugOn = false;
-let noiseMeanDb_msg = -140, noiseMeanDb_preamble = -140;
-let thresholdDb_msg = -100, thresholdDb_preamble = -100;
-
-let morseLetterBuffer = '';
-let decodedText = '';
-let signalStart = 0;
-let silenceStart = 0;
-let lastActivityTime = 0;
-let msgDbSmooth = -140;
-let preDbSmooth = -140;
-
-/* =========================
-UI elements
-========================= */
-const el = {
-morseOutput: document.getElementById('morseOutput'),
-textInput: document.getElementById('textInput'),
-toMorseBtn: document.getElementById('toMorseBtn'),
-sendBtn: document.getElementById('sendBtn'),
-listenBtn: document.getElementById('listenBtn'),
-stopBtn: document.getElementById('stopBtn'),
-symbolBuffer: document.getElementById('symbolBuffer'),
-decodedText: document.getElementById('decodedText'),
-stateLabel: document.getElementById('stateLabel'),
-debugBox: document.getElementById('debug'),
-debugToggle: document.getElementById('debugToggle'),
-usePreBeep: document.getElementById('usePreBeep')
-};
-
-/* =========================
-Dizionari Morse
-========================= */
+// ===== Morse dictionary =====
 const morseCode = {
-'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.',
-'G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..',
-'M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.',
-'S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-',
-'Y':'-.--','Z':'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
-'6':'-....','7':'--...','8':'---..','9':'----.'
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.',
+  'G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..',
+  'M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.',
+  'S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-',
+  'Y':'-.--','Z':'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+  '6':'-....','7':'--...','8':'---..','9':'----.'
 };
 const inverseMorse = Object.fromEntries(Object.entries(morseCode).map(([k,v])=>[v,k]));
 
-/* =========================
-Utilità
-========================= */
-function textToMorseString(text){
-return text.toUpperCase().split('').map(c=>morseCode[c]||' ').join(' ');
-}
-function logDebug(s){
-if(!debugOn) return;
-prevDbg=(prevDbg+s+"\n").slice(-20000);
-el.debugBox.textContent=prevDbg;
-}
-function avgDbAroundBin(fftDbArray,targetBin,spread=BIN_SPREAD){
-let sum=0,count=0,N=fftDbArray.length;
-for(let i=Math.max(0,targetBin-spread);i<=Math.min(N-1,targetBin+spread);i++){
-let v=fftDbArray[i]; if(!isFinite(v)) v=-140; sum+=v; count++;
-}
-return count? sum/count:-140;
+// ===== Convert text to Morse =====
+function textToMorse(text){
+  return text.toUpperCase().split('').map(c=>morseCode[c]||' ').join(' ');
 }
 
-/* =========================
-Ascolto e calibrazione
-========================= */
-async function startListeningAndCalibrate(){
-if(listening){logDebug('Already listening'); return;}
-const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-audioContext = new (window.AudioContext || window.webkitAudioContext)();
-sourceStream=stream;
-const src=audioContext.createMediaStreamSource(stream);
-analyser=audioContext.createAnalyser();
-analyser.fftSize=FFT_SIZE;
-src.connect(analyser);
-freqData=new Float32Array(analyser.frequencyBinCount);
-
-el.stateLabel.textContent='CALIBRATING';
-logDebug('Calibrazione... ascoltando ambientale per '+CALIBRATION_DURATION+'s');
-
-const sampleRate=audioContext.sampleRate;
-const fftSize=analyser.fftSize;
-const msgBin=Math.round(MSG_FREQ*fftSize/sampleRate);
-const preBin=Math.round(PREAMBLE_FREQ*fftSize/sampleRate);
-
-const samples=Math.max(10,Math.round(60*CALIBRATION_DURATION));
-const msgDbs=[], preDbs=[];
-let t0=audioContext.currentTime;
-while(audioContext.currentTime-t0<CALIBRATION_DURATION){
-analyser.getFloatFrequencyData(freqData);
-msgDbs.push(avgDbAroundBin(freqData,msgBin));
-preDbs.push(avgDbAroundBin(freqData,preBin));
-await new Promise(r=>setTimeout(r,16));
-}
-function mean(arr){return arr.reduce((a,b)=>a+b,0)/arr.length;}
-noiseMeanDb_msg=mean(msgDbs);
-noiseMeanDb_preamble=mean(preDbs);
-thresholdDb_preamble=noiseMeanDb_preamble+PREEMPH_DB;
-thresholdDb_msg=noiseMeanDb_msg+MSG_DB_MARGIN;
-
-logDebug('Calibrazione completata');
-listening=true; state='WAIT_PREAMBLE'; el.stateLabel.textContent=state;
-morseLetterBuffer=''; decodedText=''; signalStart=0; silenceStart=0; lastActivityTime=audioContext.currentTime;
-msgDbSmooth=-140; preDbSmooth=-140;
-processAudioLoop();
+// ===== Transmission =====
+function playTone(context,freq,start,duration){
+  const osc = context.createOscillator();
+  const gain = context.createGain();
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0, start);
+  gain.gain.linearRampToValueAtTime(1, start + 0.02); // fade-in 20ms
+  gain.gain.linearRampToValueAtTime(0, start + duration - 0.02); // fade-out
+  osc.connect(gain);
+  gain.connect(context.destination);
+  osc.start(start);
+  osc.stop(start + duration);
 }
 
-/* =========================
-Stop ascolto
-========================= */
-function stopListening(){
-if(!listening) return;
-listening=false; state='IDLE'; el.stateLabel.textContent=state;
-el.symbolBuffer.textContent=''; el.decodedText.textContent=decodedText;
-if(rafId) cancelAnimationFrame(rafId);
-if(sourceStream) sourceStream.getTracks().forEach(t=>t.stop());
-if(audioContext){ try{audioContext.close();}catch(e){} audioContext=null;}
-analyser=null; freqData=null;
-logDebug('Ascolto fermato');
-}
+document.getElementById('sendBtn').onclick = async ()=>{
+  const msg = textToMorse(document.getElementById('textInput').value);
+  const context = new (window.AudioContext||window.webkitAudioContext)();
+  let t = context.currentTime + 0.2;
+  const dot = 0.5, dash = 1.5, gap = 0.5;
+  for(const c of msg){
+    if(c==='.'){ playTone(context, 1000, t, dot); t+=dot+gap; }
+    else if(c==='-'){ playTone(context, 1000, t, dash); t+=dash+gap; }
+    else{ t+=gap*3; } // spazio tra parole
+  }
+};
 
-/* =========================
-Loop di processamento FFT con debounce
-========================= */
-function processAudioLoop(){
-if(!listening||!analyser) return;
-analyser.getFloatFrequencyData(freqData);
-const sampleRate=audioContext.sampleRate;
-const fftSize=analyser.fftSize;
-const msgBin=Math.round(MSG_FREQ*fftSize/sampleRate);
-const preBin=Math.round(PREAMBLE_FREQ*fftSize/sampleRate);
+// ===== Reception =====
+let audioContext, analyser, stream, freqData;
+let listening=false;
+let symbolBuffer = '';
+let decodedText = '';
+let signalStart=0;
+let silenceStart=0;
 
-const curPreDb=avgDbAroundBin(freqData,preBin);
-const curMsgDb=avgDbAroundBin(freqData,msgBin);
+document.getElementById('listenBtn').onclick = async ()=>{
+  if(listening) return;
+  stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  audioContext = new (window.AudioContext||window.webkitAudioContext)();
+  const src = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  src.connect(analyser);
+  freqData = new Float32Array(analyser.frequencyBinCount);
+  listening = true;
+  signalStart = 0; silenceStart = audioContext.currentTime;
+  symbolBuffer = '';
+  decodedText = '';
+  document.getElementById('symbolBuffer').textContent='';
+  document.getElementById('decodedText').textContent='';
+  processAudio();
+};
 
-const alpha=0.95; // smoothing più aggressivo
-preDbSmooth=alpha*preDbSmooth+(1-alpha)*curPreDb;
-msgDbSmooth=alpha*msgDbSmooth+(1-alpha)*curMsgDb;
+document.getElementById('stopBtn').onclick = ()=>{
+  listening=false;
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+};
 
-const preSignal=preDbSmooth>thresholdDb_preamble;
-const msgSignal=msgDbSmooth>thresholdDb_msg;
+// ===== Audio processing =====
+function processAudio(){
+  if(!listening) return;
+  analyser.getFloatTimeDomainData(freqData);
+  let sum=0;
+  for(let i=0;i<freqData.length;i++) sum+=freqData[i]*freqData[i];
+  const rms = Math.sqrt(sum/freqData.length);
+  const now = audioContext.currentTime;
+  const THRESHOLD = 0.05;
 
-const now=audioContext.currentTime;
-
-if(state==='WAIT_PREAMBLE'){
-  if(preSignal){ if(signalStart===0) signalStart=now;
-    if(now-signalStart>=PREAMBLE_MIN_DURATION){
-      state='RECEIVING'; el.stateLabel.textContent=state;
-      logDebug('Preambolo rilevato. Inizio decodifica');
-      morseLetterBuffer=''; decodedText=''; signalStart=0; silenceStart=0; lastActivityTime=now;
+  if(rms>THRESHOLD){
+    if(signalStart===0) signalStart = now;
+    silenceStart = now;
+  } else {
+    if(signalStart>0){
+      const dur = now - signalStart;
+      if(dur<1) symbolBuffer+='.';
+      else symbolBuffer+='-';
+      signalStart=0;
+      document.getElementById('symbolBuffer').textContent = symbolBuffer;
     }
-  } else { if(signalStart!==0) signalStart=0; }
-} else if(state==='RECEIVING'){
-  lastActivityTime=now;
-
-  // inizio segnale con debounce
-  if(msgSignal){
-    if(signalStart===0) signalStart=now;
-    if(silenceStart>0){ 
-      const silDur=now-silenceStart;
-      if(silDur>=WORD_SILENCE){ if(morseLetterBuffer.length>0){decodedText+=inverseMorse[morseLetterBuffer]||'?'; morseLetterBuffer='';} decodedText+=' '; }
-      else if(silDur>=LETTER_SILENCE){ if(morseLetterBuffer.length>0){decodedText+=inverseMorse[morseLetterBuffer]||'?'; morseLetterBuffer='';} }
-      silenceStart=0;
+    const silent = now - silenceStart;
+    if(silent>1 && symbolBuffer){ // fine lettera
+      decodedText += inverseMorse[symbolBuffer]||'?';
+      symbolBuffer='';
+      document.getElementById('symbolBuffer').textContent='';
+      document.getElementById('decodedText').textContent = decodedText;
     }
+    if(silent>2) decodedText+=' '; // fine parola
   }
 
-  // fine segnale con debounce minimo
-  if(!msgSignal && signalStart>0 && (now-signalStart)>=SIGNAL_MIN_DURATION){
-    const dur=now-signalStart;
-    morseLetterBuffer+= dur<DOT_MAX?'.':'-';
-    signalStart=0;
-    silenceStart=now;
-  }
-
-  // timeout lettere/parole
-  if(signalStart===0 && silenceStart>0){
-    const silDur=now-silenceStart;
-    if(silDur>=WORD_SILENCE){ if(morseLetterBuffer.length>0){decodedText+=inverseMorse[morseLetterBuffer]||'?'; morseLetterBuffer='';} decodedText+=' '; silenceStart=now; }
-    else if(silDur>=LETTER_SILENCE){ if(morseLetterBuffer.length>0){decodedText+=inverseMorse[morseLetterBuffer]||'?'; morseLetterBuffer='';} silenceStart=now; }
-  }
-
-  // fine trasmissione
-  if(!msgSignal && !preSignal && (now-lastActivityTime)>END_OF_TRANSMISSION){
-    if(morseLetterBuffer.length>0){decodedText+=inverseMorse[morseLetterBuffer]||'?'; morseLetterBuffer='';}
-    state='IDLE'; el.stateLabel.textContent=state;
-    el.decodedText.textContent=decodedText;
-    logDebug('Fine trasmissione (timeout). Testo finale: '+decodedText);
-    signalStart=0; silenceStart=0;
-  }
+  requestAnimationFrame(processAudio);
 }
-
-if(debugOn){
-  el.debugBox.style.display='block';
-  el.debugBox.textContent=
-    `preDbSmooth:${preDbSmooth.toFixed(1)} dB thr:${thresholdDb_preamble.toFixed(1)}\n`+
-    `msgDbSmooth:${msgDbSmooth.toFixed(1)} dB thr:${thresholdDb_msg.toFixed(1)}\n`+
-    `state:${state}\nmorseBuffer:${morseLetterBuffer}\ndecoded:${decodedText}`;
-} else { el.debugBox.style.display='none'; }
-
-el.symbolBuffer.textContent=morseLetterBuffer;
-el.decodedText.textContent=decodedText;
-
-rafId=requestAnimationFrame(processAudioLoop);
-}
-
-/* =========================
-Trasmissione
-========================= */
-function playToneAt(context,freq,startTime,duration,destination){
-const osc=context.createOscillator();
-osc.type='sine'; osc.frequency.value=freq;
-const gain=context.createGain(); gain.gain.value=1.0;
-osc.connect(gain); gain.connect(destination||context.destination);
-osc.start(startTime); osc.stop(startTime+duration);
-return {osc,gain};
-}
-
-async function sendMorse(){
-const morse=el.morseOutput.textContent||textToMorseString(el.textInput.value);
-if(!morse.trim()){alert('Nessun messaggio morse da trasmettere'); return;}
-const context=new (window.AudioContext||window.webkitAudioContext)();
-let t=context.currentTime+0.2;
-const dot=0.5,dash=dot*3,gap=0.5;
-if(el.usePreBeep.checked){ playToneAt(context,PREAMBLE_FREQ,t,0.6); t+=0.8; }
-for(const ch of morse){
-  if(ch==='.') { playToneAt(context,MSG_FREQ,t,dot); t+=dot+gap; }
-  else if(ch==='-') { playToneAt(context,MSG_FREQ,t,dash); t+=dash+gap; }
-  else { t+=gap*3; }
-}
-playToneAt(context,PREAMBLE_FREQ,t,0.12);
-}
-
-/* =========================
-UI bindings
-========================= */
-el.toMorseBtn.addEventListener('click',()=>{el.morseOutput.textContent=textToMorseString(el.textInput.value);});
-el.sendBtn.addEventListener('click',async()=>{await sendMorse();});
-el.listenBtn.addEventListener('click',async()=>{debugOn=el.debugToggle.checked; if(!listening) await startListeningAndCalibrate();});
-el.stopBtn.addEventListener('click',stopListening);
-el.debugToggle.addEventListener('change',(e)=>{debugOn=e.target.checked; el.debugBox.style.display=debugOn?'block':'none';});
-
-el.morseOutput.textContent=textToMorseString(el.textInput.value);
-el.debugBox.textContent='Premi "Avvia Ascolto" sul ricevitore.\nPoi premi "Trasmetti Morse" sul mittente.';
 </script>
 </body>
 </html>
