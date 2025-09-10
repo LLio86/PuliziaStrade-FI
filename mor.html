@@ -1,187 +1,449 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Morse Web Precisione FFT</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Morse: Preambolo + FFT + Calibrazione</title>
 <style>
-  body { font-family: Arial; padding: 20px; }
-  textarea { width: 100%; height: 100px; margin-bottom: 10px; }
-  button { padding: 10px; margin-bottom: 10px; }
-  p { word-wrap: break-word; font-size: 1.2em; }
-  #symbolBuffer { font-size: 1.5em; color: blue; }
+  body { font-family: Arial, Helvetica, sans-serif; padding: 18px; max-width:900px; margin:auto; }
+  h1 { margin-top:0 }
+  textarea { width:100%; height:90px; margin-bottom:8px; }
+  button { padding:10px 14px; margin-right:8px; margin-bottom:8px; }
+  .small { font-size:0.9em; color:#444; }
+  #status { font-weight:600; margin:8px 0; }
+  #symbolBuffer { font-size:1.2em; color:#0b5; min-height:1.2em; }
+  #debug { font-family:monospace; white-space:pre-wrap; background:#f6f6f6; padding:8px; border-radius:6px; max-height:180px; overflow:auto; }
+  label { display:inline-block; margin-right:8px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
 </style>
 </head>
 <body>
+<h1>Morse (preambolo + FFT + calibrazione)</h1>
+<p class="small">Procedura consigliata: sul ricevitore: premi <b>Avvia Ascolto</b> e attendi la fine calibrazione; poi il mittente può premere <b>Trasmetti Morse</b>.</p>
 
-<h1>Morse Web Trasmissione e Decodifica con FFT</h1>
+<section>
+  <h2>Mittente</h2>
+  <textarea id="textInput" placeholder="Testo da trasmettere...">HELLO WORLD</textarea>
+  <div class="row">
+    <button id="toMorseBtn">Converti in Morse</button>
+    <button id="sendBtn">Trasmetti Morse</button>
+    <label><input id="usePreBeep" type="checkbox" checked> Usa preambolo (consigliato)</label>
+  </div>
+  <div><strong>Morse:</strong> <span id="morseOutput"></span></div>
+</section>
 
-<h2>Testo → Morse</h2>
-<textarea id="textInput" placeholder="Scrivi qui..."></textarea><br>
-<button onclick="textToMorse()">Converti in Morse</button>
-<p id="morseOutput"></p>
-<button onclick="sendMorse()">Trasmetti Morse</button>
+<hr/>
 
-<h2>Morse → Testo</h2>
-<button id="listenBtn" onclick="toggleListening()">Avvia/Interrompi Ascolto Morse</button>
-<p>Simboli rilevati: <span id="symbolBuffer"></span></p>
-<p>Testo decodificato: <span id="decodedText"></span></p>
+<section>
+  <h2>Ricevitore</h2>
+  <div class="row">
+    <button id="listenBtn">Avvia Ascolto</button>
+    <button id="stopBtn">Ferma Ascolto</button>
+    <label>Debug: <input id="debugToggle" type="checkbox"></label>
+  </div>
+
+  <div id="status">Stato: <span id="stateLabel">IDLE</span></div>
+  <div><strong>Simboli (lettera corrente):</strong> <span id="symbolBuffer"></span></div>
+  <div><strong>Testo decodificato:</strong> <span id="decodedText"></span></div>
+
+  <h3>Parametri e diagnostica</h3>
+  <div class="small">Frequenza messaggio: <b>600Hz</b> — Preambolo: <b>1000Hz</b></div>
+  <div class="small">Calibrazione automatica → soglia regolata in dB.</div>
+  <div id="debug" style="display:none"></div>
+</section>
 
 <script>
-// =================== DIZIONARI ===================
+/* =========================
+   Parametri (puoi regolarli)
+   ========================= */
+const MSG_FREQ = 600;         // frequenza del beep del messaggio (Hz)
+const PREAMBLE_FREQ = 1000;   // frequenza preambolo (Hz)
+const PREAMBLE_MIN_DURATION = 0.45; // s, tempo minimo per considerare preambolo valido
+const CALIBRATION_DURATION = 1.0;   // s per calibrazione rumore
+const FFT_SIZE = 4096;        // risoluzione FFT (più grande = migliore risoluzione freq)
+const BIN_SPREAD = 2;         // quanti bin attorno al target mediare
+const PREEMPH_DB = 12;        // dB sopra rumore per considerare preambolo
+const MSG_DB_MARGIN = 9;      // dB sopra rumore per considerare segnale messaggio
+
+// Durate lente e tolleranze (per precisione)
+const DOT_MAX = 0.8;      // durata massima per considerare punto (s)
+const DASH_MIN = 0.8;     // durata minima per considerare trattino (s)
+const INTER_SYMBOL_SILENCE = 0.6; // silenzio tra simboli nella stessa lettera
+const LETTER_SILENCE = 1.1;       // silenzio fra lettere
+const WORD_SILENCE = 2.0;         // silenzio fra parole
+const END_OF_TRANSMISSION = 4.0;  // timeout fine trasmissione
+
+/* =========================
+   Stato e variabili audio
+   ========================= */
+let audioContext = null;
+let analyser = null;
+let sourceStream = null;
+let freqData = null;
+let listening = false;
+let rafId = null;
+let state = 'IDLE'; // IDLE, WAIT_PREAMBLE, RECEIVING
+let prevDbg = '';
+let debugOn = false;
+
+// Thresholds in dB (calibrati)
+let noiseMeanDb_msg = -140, noiseMeanDb_preamble = -140;
+let thresholdDb_msg = -100, thresholdDb_preamble = -100;
+
+// decoding buffers
+let morseLetterBuffer = '';
+let decodedText = '';
+let signalStart = 0;
+let silenceStart = 0;
+let lastActivityTime = 0;
+
+// helper UI
+const el = {
+  morseOutput: document.getElementById('morseOutput'),
+  textInput: document.getElementById('textInput'),
+  toMorseBtn: document.getElementById('toMorseBtn'),
+  sendBtn: document.getElementById('sendBtn'),
+  listenBtn: document.getElementById('listenBtn'),
+  stopBtn: document.getElementById('stopBtn'),
+  symbolBuffer: document.getElementById('symbolBuffer'),
+  decodedText: document.getElementById('decodedText'),
+  stateLabel: document.getElementById('stateLabel'),
+  debugBox: document.getElementById('debug'),
+  debugToggle: document.getElementById('debugToggle'),
+  usePreBeep: document.getElementById('usePreBeep')
+};
+
+/* =========================
+   Morse dictionaries
+   ========================= */
 const morseCode = {
-  'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
-  'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
-  'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
-  'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
-  'Y': '-.--', 'Z': '--..',
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.',
+  'G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..',
+  'M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.',
+  'S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-',
+  'Y':'-.--','Z':'--..',
   '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
   '6':'-....','7':'--...','8':'---..','9':'----.'
 };
-const inverseMorse = Object.fromEntries(Object.entries(morseCode).map(([k,v]) => [v,k]));
+const inverseMorse = Object.fromEntries(Object.entries(morseCode).map(([k,v])=>[v,k]));
 
-// =================== TESTO → MORSE ===================
-function textToMorse() {
-  const text = document.getElementById('textInput').value.toUpperCase();
-  const morse = text.split('').map(c => morseCode[c] || ' ').join(' ');
-  document.getElementById('morseOutput').innerText = morse;
+/* =========================
+   Utilità
+   ========================= */
+function textToMorseString(text) {
+  return text.toUpperCase().split('').map(c => morseCode[c] || ' ').join(' ');
 }
 
-// =================== TRASMISSIONE MORSE ===================
-async function sendMorse() {
-  await startListening(); // Inizia ascolto prima
-  await new Promise(r => setTimeout(r, 500)); // pre-avviso
-  const morse = document.getElementById('morseOutput').innerText;
-  const context = new (window.AudioContext || window.webkitAudioContext)();
-  let time = context.currentTime;
-  const dot = 0.5, dash = dot*3, gap = 0.5;
-
-  // piccolo beep pre-avviso
-  const oscPre = context.createOscillator();
-  oscPre.type = 'sine';
-  oscPre.frequency.value = 800;
-  oscPre.connect(context.destination);
-  oscPre.start(time);
-  oscPre.stop(time + 0.2);
-  time += 0.4;
-
-  morse.split('').forEach(symbol => {
-    if(symbol === '.') {
-      const osc = context.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = 600;
-      osc.connect(context.destination);
-      osc.start(time);
-      osc.stop(time + dot);
-      time += dot + gap;
-    } else if(symbol === '-') {
-      const osc = context.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = 600;
-      osc.connect(context.destination);
-      osc.start(time);
-      osc.stop(time + dash);
-      time += dash + gap;
-    } else {
-      time += gap*3; // spazio lettere
-    }
-  });
+function logDebug(s) {
+  if(!debugOn) return;
+  prevDbg = (prevDbg + s + "\n").slice(-20000);
+  el.debugBox.textContent = prevDbg;
 }
 
-// =================== MICROFONO → DECODIFICA FFT ===================
-let listening = false;
-let audioContext, analyser, dataArray, source;
-let signalStart = 0, silenceStart = 0;
-let morseLetterBuffer = '';
-let decodedText = '';
-let prevAmplitude = 0;
-
-function toggleListening() {
-  if(listening) {
-    listening = false;
-    if(source) source.mediaStream.getTracks().forEach(track => track.stop());
-    document.getElementById('listenBtn').innerText = "Avvia Ascolto Morse";
-    document.getElementById('decodedText').innerText = "Ascolto interrotto.";
-    document.getElementById('symbolBuffer').innerText = '';
-  } else {
-    startListening();
+function avgDbAroundBin(fftDbArray, targetBin, spread=BIN_SPREAD) {
+  let sum = 0, count = 0;
+  const N = fftDbArray.length;
+  for(let i = Math.max(0,targetBin-spread); i <= Math.min(N-1, targetBin+spread); i++) {
+    let v = fftDbArray[i];
+    if(!isFinite(v)) v = -140; // very small
+    sum += v;
+    count++;
   }
+  return (count? sum/count : -140);
 }
 
-async function startListening() {
+/* =========================
+   Avvia ascolto / calibrazione
+   ========================= */
+async function startListeningAndCalibrate() {
+  if(listening) {
+    logDebug('Already listening.');
+    return;
+  }
+  // get permissions & audio nodes
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  sourceStream = stream;
+  const src = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = FFT_SIZE;
+  src.connect(analyser);
+  freqData = new Float32Array(analyser.frequencyBinCount);
+
+  el.stateLabel.textContent = 'CALIBRATING';
+  logDebug('Calibrazione... ascoltando ambientale per ' + CALIBRATION_DURATION + 's');
+
+  // determine bins
+  const sampleRate = audioContext.sampleRate;
+  const fftSize = analyser.fftSize;
+  const msgBin = Math.round(MSG_FREQ * fftSize / sampleRate);
+  const preBin = Math.round(PREAMBLE_FREQ * fftSize / sampleRate);
+
+  // collect samples for calibration
+  const samples = Math.max(10, Math.round(60 * CALIBRATION_DURATION)); // ~60fps
+  const msgDbs = [];
+  const preDbs = [];
+
+  let t0 = audioContext.currentTime;
+  while(audioContext.currentTime - t0 < CALIBRATION_DURATION) {
+    analyser.getFloatFrequencyData(freqData);
+    const mdb = avgDbAroundBin(freqData, msgBin);
+    const pdb = avgDbAroundBin(freqData, preBin);
+    msgDbs.push(mdb);
+    preDbs.push(pdb);
+    await new Promise(r => setTimeout(r, 16)); // ~60Hz
+  }
+
+  function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+  function std(arr, mu) { mu = mu ?? mean(arr); return Math.sqrt(arr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/arr.length); }
+  noiseMeanDb_msg = mean(msgDbs);
+  const noiseStd_msg = std(msgDbs, noiseMeanDb_msg);
+  noiseMeanDb_preamble = mean(preDbs);
+  const noiseStd_pre = std(preDbs, noiseMeanDb_preamble);
+
+  // set thresholds (dB)
+  thresholdDb_preamble = noiseMeanDb_preamble + PREEMPH_DB; // stronger margin for preamble
+  thresholdDb_msg = noiseMeanDb_msg + MSG_DB_MARGIN;
+
+  logDebug('Calibrazione completata.');
+  logDebug('noise msg dB mean=' + noiseMeanDb_msg.toFixed(1) + ' std=' + noiseStd_msg.toFixed(1));
+  logDebug('noise pre dB mean=' + noiseMeanDb_preamble.toFixed(1) + ' std=' + noiseStd_pre.toFixed(1));
+  logDebug('threshold pre dB=' + thresholdDb_preamble.toFixed(1) + '  threshold msg dB=' + thresholdDb_msg.toFixed(1));
+
+  // set flags and start processing
   listening = true;
+  state = 'WAIT_PREAMBLE';
+  el.stateLabel.textContent = state;
   decodedText = '';
   morseLetterBuffer = '';
   signalStart = 0;
   silenceStart = 0;
-  prevAmplitude = 0;
-  document.getElementById('listenBtn').innerText = "Interrompi Ascolto Morse";
-  document.getElementById('decodedText').innerText = "Ascolto in corso...";
-  document.getElementById('symbolBuffer').innerText = '';
+  lastActivityTime = audioContext.currentTime;
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  source = audioContext.createMediaStreamSource(stream);
-  analyser = audioContext.createAnalyser();
-  analyser.fftSize = 2048;
-  dataArray = new Uint8Array(analyser.fftSize);
-  source.connect(analyser);
+  // start processing loop
+  processAudioLoop();
+}
 
-  function processAudio() {
-    analyser.getByteTimeDomainData(dataArray);
+/* =========================
+   Stop ascolto
+   ========================= */
+function stopListening() {
+  if(!listening) return;
+  listening = false;
+  state = 'IDLE';
+  el.stateLabel.textContent = state;
+  el.symbolBuffer.textContent = '';
+  el.decodedText.textContent = decodedText;
+  if(rafId) cancelAnimationFrame(rafId);
+  if(sourceStream) sourceStream.getTracks().forEach(t => t.stop());
+  if(audioContext) {
+    try { audioContext.close(); } catch(e){}
+    audioContext = null;
+  }
+  analyser = null;
+  freqData = null;
+  logDebug('Ascolto fermato.');
+}
 
-    // FFT
-    const fft = new Float32Array(analyser.frequencyBinCount);
-    analyser.getFloatFrequencyData(fft);
+/* =========================
+   Process loop (FFT-based)
+   ========================= */
+let prevPreDb = -140, prevMsgDb = -140;
+let preDbSmooth = -140, msgDbSmooth = -140;
+function processAudioLoop() {
+  if(!listening || !analyser) return;
+  analyser.getFloatFrequencyData(freqData);
 
-    // frequenza beep target ~600Hz
-    const sampleRate = audioContext.sampleRate;
-    const binSize = sampleRate / analyser.fftSize;
-    const targetBin = Math.round(600 / binSize);
-    const amplitude = fft[targetBin] ? Math.pow(10, fft[targetBin]/20) : 0;
+  const sampleRate = audioContext.sampleRate;
+  const fftSize = analyser.fftSize;
+  const msgBin = Math.round(MSG_FREQ * fftSize / sampleRate);
+  const preBin = Math.round(PREAMBLE_FREQ * fftSize / sampleRate);
 
-    // smoothing
-    const smoothAmp = 0.8*prevAmplitude + 0.2*amplitude;
-    prevAmplitude = smoothAmp;
+  const curPreDb = avgDbAroundBin(freqData, preBin);
+  const curMsgDb = avgDbAroundBin(freqData, msgBin);
 
-    const threshold = 0.02; // regola in base al microfono
-    const now = audioContext.currentTime;
-    const signal = smoothAmp > threshold;
+  // smoothing in dB (exponential)
+  const alpha = 0.7;
+  preDbSmooth = alpha * preDbSmooth + (1-alpha) * curPreDb;
+  msgDbSmooth = alpha * msgDbSmooth + (1-alpha) * curMsgDb;
 
-    // inizio segnale
-    if(signal && signalStart === 0) {
+  // thresholds in dB
+  const preSignal = preDbSmooth > thresholdDb_preamble;
+  const msgSignal = msgDbSmooth > thresholdDb_msg;
+
+  const now = audioContext.currentTime;
+  // STATE MACHINE
+  if(state === 'WAIT_PREAMBLE') {
+    // accumulate continuous preamble time
+    if(preSignal) {
+      if(signalStart === 0) signalStart = now;
+      const dur = now - signalStart;
+      if(dur >= PREAMBLE_MIN_DURATION) {
+        // preamble detected -> start receiving
+        state = 'RECEIVING';
+        el.stateLabel.textContent = 'RECEIVING';
+        logDebug('Preambolo rilevato. Inizio decodifica.');
+        // reset buffers for message detection
+        morseLetterBuffer = '';
+        decodedText = '';
+        silenceStart = 0;
+        signalStart = 0;
+        lastActivityTime = now;
+      }
+    } else {
+      // reset
+      if(signalStart !== 0) signalStart = 0;
+    }
+  } else if(state === 'RECEIVING') {
+    lastActivityTime = now;
+    // detect start of message-signal (600Hz)
+    if(msgSignal && signalStart === 0) {
       signalStart = now;
+      // when starting a signal, if silenceStart existed check for letter/word boundaries
       if(silenceStart > 0) {
-        const silenceDuration = now - silenceStart;
-        if(silenceDuration > 0.8 && morseLetterBuffer) {
-          decodedText += inverseMorse[morseLetterBuffer] || '';
-          morseLetterBuffer = '';
-        }
-        if(silenceDuration > 1.5) {
+        const silenceDur = now - silenceStart;
+        if(silenceDur >= WORD_SILENCE) {
           decodedText += ' ';
+        } else if(silenceDur >= LETTER_SILENCE) {
+          // end letter: decode morseLetterBuffer
+          if(morseLetterBuffer.length > 0) {
+            decodedText += inverseMorse[morseLetterBuffer] || '?';
+            morseLetterBuffer = '';
+          }
         }
         silenceStart = 0;
       }
     }
 
-    // fine segnale
-    if(!signal && signalStart > 0) {
-      const duration = now - signalStart;
-      if(duration < 0.7) morseLetterBuffer += '.';
-      else morseLetterBuffer += '-';
+    // detect end of signal
+    if(!msgSignal && signalStart > 0) {
+      const dur = now - signalStart;
+      // classify dot/dash
+      if(dur < DOT_MAX) {
+        morseLetterBuffer += '.';
+      } else {
+        morseLetterBuffer += '-';
+      }
       signalStart = 0;
       silenceStart = now;
+      // update symbol buffer quickly for user
+      el.symbolBuffer.textContent = morseLetterBuffer;
+      el.decodedText.textContent = decodedText;
     }
 
-    document.getElementById('symbolBuffer').innerText = morseLetterBuffer;
-    document.getElementById('decodedText').innerText = decodedText;
-
-    if(listening) requestAnimationFrame(processAudio);
+    // if long silence -> probably end of transmission
+    if(!msgSignal && !preSignal) {
+      const idleDur = now - lastActivityTime;
+      if(idleDur > END_OF_TRANSMISSION) {
+        // finalize any pending letter
+        if(morseLetterBuffer.length > 0) {
+          decodedText += inverseMorse[morseLetterBuffer] || '?';
+          morseLetterBuffer = '';
+        }
+        state = 'IDLE';
+        el.stateLabel.textContent = 'IDLE';
+        el.decodedText.textContent = decodedText;
+        logDebug('Fine trasmissione (timeout). Testo finale: ' + decodedText);
+        // keep listening (optional) — here rimaniamo in IDLE ma ancora ascoltando per nuovi preamboli
+        signalStart = 0;
+        silenceStart = 0;
+      }
+    }
   }
 
-  processAudio();
-}
-</script>
+  // update UI/debug
+  if(debugOn) {
+    el.debugBox.style.display = 'block';
+    el.debugBox.textContent = 
+      `preDbSmooth: ${preDbSmooth.toFixed(1)} dB  preThr:${thresholdDb_preamble.toFixed(1)} dB\n` +
+      `msgDbSmooth: ${msgDbSmooth.toFixed(1)} dB  msgThr:${thresholdDb_msg.toFixed(1)} dB\n` +
+      `state: ${state}\n` +
+      `morseBuffer: ${morseLetterBuffer}\n` +
+      `decoded: ${decodedText}`;
+  } else {
+    el.debugBox.style.display = 'none';
+  }
+  el.symbolBuffer.textContent = morseLetterBuffer;
+  el.decodedText.textContent = decodedText;
 
+  rafId = requestAnimationFrame(processAudioLoop);
+}
+
+/* =========================
+   Transmit function
+   ========================= */
+function playToneAt(context, freq, startTime, duration, destination) {
+  const osc = context.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  const gain = context.createGain();
+  gain.gain.value = 1.0;
+  osc.connect(gain);
+  gain.connect(destination || context.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+  // cleanup not strictly necessary: nodes auto-collected after stop
+  return {osc, gain};
+}
+
+async function sendMorse() {
+  const morse = el.morseOutput.textContent || textToMorseString(el.textInput.value);
+  if(!morse.trim()) { alert('Nessun messaggio morse da trasmettere'); return; }
+
+  // Ensure receiver has time to start and calibrate: the app design expects the receiver to press "Avvia Ascolto"
+  // But we allow sender to transmit whenever—if receiver is not listening, it will miss it.
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  let t = context.currentTime + 0.2;
+  const dot = 0.5, dash = dot * 3, gap = 0.5;
+
+  if(el.usePreBeep.checked) {
+    // preambolo: long tone at PREAMBLE_FREQ
+    playToneAt(context, PREAMBLE_FREQ, t, 0.6);
+    t += 0.8; // short pause after preamble
+  }
+
+  // transmit Morse (600Hz)
+  for(const ch of morse) {
+    if(ch === '.') {
+      playToneAt(context, MSG_FREQ, t, dot);
+      t += dot + gap;
+    } else if(ch === '-') {
+      playToneAt(context, MSG_FREQ, t, dash);
+      t += dash + gap;
+    } else {
+      // space between letters -> longer gap
+      t += gap * 3;
+    }
+  }
+  // optional end beep to help receiver detect end
+  playToneAt(context, PREAMBLE_FREQ, t, 0.12);
+}
+
+/* =========================
+   UI bindings
+   ========================= */
+el.toMorseBtn.addEventListener('click', () => {
+  const m = textToMorseString(el.textInput.value);
+  el.morseOutput.textContent = m;
+});
+el.sendBtn.addEventListener('click', async () => {
+  await sendMorse();
+});
+el.listenBtn.addEventListener('click', async () => {
+  debugOn = el.debugToggle.checked;
+  if(!listening) await startListeningAndCalibrate();
+});
+el.stopBtn.addEventListener('click', stopListening);
+el.debugToggle.addEventListener('change', (e) => {
+  debugOn = e.target.checked;
+  el.debugBox.style.display = debugOn ? 'block' : 'none';
+});
+
+/* =========================
+   Notes / initial state
+   ========================= */
+el.morseOutput.textContent = textToMorseString(el.textInput.value);
+el.debugBox.textContent = 'Premi "Avvia Ascolto" sul ricevitore.\nPoi premi "Trasmetti Morse" sul mittente (o viceversa ma il ricevitore deve essere già in ascolto).';
+</script>
 </body>
 </html>
