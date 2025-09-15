@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barcode Scanner PWA</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #video-container { width: 100%; max-width: 400px; margin-bottom: 10px; }
+    #video { width: 100%; border: 1px solid #ccc; }
+    #productInfo img { max-width: 200px; display: block; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Barcode Scanner PWA</h1>
+
+<div id="video-container">
+    <div id="scanner-container"></div>
+</div>
+
+<p>Codice rilevato: <span id="barcodeResult">-</span></p>
+
+<div id="productInfo">
+    <p><strong>Nome:</strong> <span id="productName">-</span></p>
+    <p><strong>Marca:</strong> <span id="productBrand">-</span></p>
+    <p><strong>Ingredienti:</strong> <span id="productIngredients">-</span></p>
+    <img id="productImage" src="" alt="">
+</div>
+
+<script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
+<script>
+const barcodeResult = document.getElementById('barcodeResult');
+
+function startScanner() {
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#scanner-container'),
+            constraints: {
+                facingMode: "environment" // fotocamera posteriore
+            }
+        },
+        decoder: {
+            readers: ["ean_reader","code_128_reader","upc_reader"]
+        }
+    }, function(err) {
+        if(err){
+            console.error(err);
+            return;
+        }
+        Quagga.start();
+    });
+
+    Quagga.onDetected(data => {
+        const code = data.codeResult.code;
+        barcodeResult.textContent = code;
+        Quagga.stop(); // Ferma scanner per evitare rilevazioni ripetute
+        fetchProductInfo(code);
+    });
+}
+
+function fetchProductInfo(barcode) {
+    const url = `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`;
+    fetch(url)
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 1){
+            const product = data.product;
+            document.getElementById('productName').textContent = product.product_name || "-";
+            document.getElementById('productBrand').textContent = product.brands || "-";
+            document.getElementById('productIngredients').textContent = product.ingredients_text || "-";
+            document.getElementById('productImage').src = product.image_front_small_url || "";
+            document.getElementById('productImage').alt = product.product_name || "";
+        } else {
+            document.getElementById('productName').textContent = "Prodotto non trovato";
+            document.getElementById('productBrand').textContent = "-";
+            document.getElementById('productIngredients').textContent = "-";
+            document.getElementById('productImage').src = "";
+            document.getElementById('productImage').alt = "";
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Errore nella ricerca del prodotto");
+    });
+}
+
+// Avvia scanner al caricamento della pagina
+window.addEventListener('load', startScanner);
+</script>
+
+</body>
+</html>
